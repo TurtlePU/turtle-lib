@@ -1,0 +1,42 @@
+\import Algebra.Group
+\import Algebra.Involutive
+\import Paths
+\import Paths.Meta
+
+\truncated \data Collist (A : Involutive) : \Set
+  | []
+  | \infixr 5 :* A (Collist A)
+  | :*-collapse {a : A} {c : Collist A} : a :* invert a :* c = c
+
+\lemma :*-lcollapse {A : Involutive} {a : A} {c : Collist A} : invert a :* a :* c = c =>
+  pmap (_ :* __ :* _) (inv (invert-inv _)) *> path :*-collapse
+
+\instance FreeGroup (A : Involutive) : Group (Collist A)
+  | ide => []
+  | * (c c' : Collist A) : Collist A \elim c {
+    | [] => c'
+    | :* a c => a :* c * c'
+    | :*-collapse => path :*-collapse
+  }
+  | ide-left => idp
+  | ide-right {c : Collist A} : c * [] = c \elim c {
+    | [] => idp
+    | :* _ _ => pmap (_ :* __) ide-right
+  }
+  | *-assoc {c c' c'' : Collist A} : c * c' * c'' = c * (c' * c'') \elim c {
+    | [] => idp
+    | :* _ _ => pmap (_ :* __) *-assoc
+  }
+  | inverse (c : Collist A) : Collist A \elim c {
+    | [] => []
+    | :* a c => inverse c * (invert a :* [])
+    | :*-collapse => rewrite (*-assoc, invert-inv, path :*-collapse) ide-right
+  }
+  | inverse-left {c : Collist A} : inverse c * c = [] \elim c {
+    | [] => idp
+    | :* _ _ => rewrite (*-assoc, :*-lcollapse) inverse-left
+  }
+  | inverse-right {c : Collist A} : c * inverse c = [] \elim c {
+    | [] => idp
+    | :* _ _ => rewrite (inv *-assoc, inverse-right) (path :*-collapse)
+  }
