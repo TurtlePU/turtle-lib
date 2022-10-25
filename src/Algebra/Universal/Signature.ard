@@ -1,0 +1,5 @@
+\class Signature (Sigma : \Set) (\classifying param : Sigma -> \Set) {
+  \data Sentence (X : \Set)
+    | var X
+    | cont (op : Sigma) (param op -> Sentence X)
+}

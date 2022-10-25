@@ -1,0 +1,17 @@
+\import Algebra.Universal.Signature
+\import Set
+
+\class Interpretation (T : Signature) \extends BaseSet {
+  | interp (op : T.Sigma) : (T op -> E) -> E
+
+  \func \infixl 2 ! {X : \Set} (phi : T.Sentence X) (xs : X -> E) : E \elim phi
+    | var x => xs x
+    | cont op k => interp op (\lam arg => k arg ! xs)
+} \where {
+  \open Signature
+
+  \instance Initial (T : Signature) (X : \Set) : Interpretation (T.Sentence X) T
+    | interp => cont
+}
+
+\meta Interprets T => Interpretation { | T => T }
