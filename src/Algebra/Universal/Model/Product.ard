@@ -1,0 +1,21 @@
+\import Algebra.Universal.Interpretation
+\import Algebra.Universal.Interpretation.Product
+\import Algebra.Universal.Model
+\import Algebra.Universal.Signature
+\import Algebra.Universal.Theory
+\import Paths
+\import Paths.Meta
+
+\instance ProductModel {T : Theory} {J : \Type} (M : J -> Models T) : Model (\Pi (j : J) -> M j) T
+  | Interpretation => ProductInterpretation M
+  | eqn-sat e ctx => ext (\lam j => rewrite (!-comm, !-comm) (eqn-sat e _))
+  \where {
+    \open Interpretation
+    \open Signature
+
+    \lemma !-comm {T : Theory} {C : \Set} {J : \Type} {M : J -> Models T} {phi : T.Sentence C}
+                  {ctx : C -> \Pi (j : J) -> M j} {j : J} : (phi ! ctx) j = phi ! (\lam c => ctx c j)
+    \elim phi
+      | var _ => idp
+      | cont op _ => pmap (interp op) (ext (\lam p => !-comm))
+  }

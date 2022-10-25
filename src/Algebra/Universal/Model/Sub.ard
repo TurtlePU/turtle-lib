@@ -1,0 +1,21 @@
+\import Algebra.Universal.Interpretation
+\import Algebra.Universal.Interpretation.Sub
+\import Algebra.Universal.Model
+\import Algebra.Universal.Signature
+\import Algebra.Universal.Theory
+\import Paths
+\import Paths.Meta
+
+\instance SubModel {T : Theory} {M : Models T} (P : CongruentProp M) : Model (\Sigma (x : M) (P x)) T
+  | Interpretation => SubInterpretation P
+  | eqn-sat e ctx => ext (rewrite (!-comm M ctx, !-comm M ctx) (eqn-sat e _))
+  \where {
+    \open Signature
+    \open Interpretation
+
+    \lemma !-comm {T : Theory} {C : \Set} (M : Models T) {P : CongruentProp M} {phi : T.Sentence C}
+                  (ctx : C -> \Sigma (x : M) (P x)) : (phi ! ctx).1 = phi ! (\lam c => (ctx c).1)
+    \elim phi
+      | var x => idp
+      | cont op k => pmap (interp op) (ext (\lam a => !-comm M ctx))
+  }

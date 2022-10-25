@@ -1,0 +1,9 @@
+\import Algebra.Universal.Interpretation
+\import Algebra.Universal.Signature
+
+\record CongruentProp {S : Signature} (I : Interprets S) (\coerce P : I -> \Prop)
+  | is-congruent {op : S.Sigma} {k : S op -> I} : (\Pi (a : S op) -> P (k a)) -> P (interp op k)
+
+\instance SubInterpretation {S : Signature} {I : Interprets S} (P : CongruentProp I)
+: Interpretation (\Sigma (x : I) (P x)) S
+  | interp op k => (interp op (k __).1, is-congruent (k __).2)

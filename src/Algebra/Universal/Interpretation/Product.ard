@@ -1,0 +1,6 @@
+\import Algebra.Universal.Interpretation
+\import Algebra.Universal.Signature
+
+\instance ProductInterpretation {S : Signature} {J : \Type} (M : J -> Interprets S)
+: Interpretation (\Pi (j : J) -> M j) S
+  | interp op k j => interp op (k __ j)

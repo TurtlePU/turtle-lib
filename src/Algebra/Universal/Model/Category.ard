@@ -1,0 +1,76 @@
+\import Algebra.Universal.Formula
+\import Algebra.Universal.Interpretation
+\import Algebra.Universal.Interpretation.Sub
+\import Algebra.Universal.Model
+\import Algebra.Universal.Model.Product
+\import Algebra.Universal.Model.Sub
+\import Algebra.Universal.Theory
+\import Category
+\import Category.Limit
+\import Category.Meta
+\import Equiv (QEquiv)
+\import Paths
+\import Paths.Meta
+\import Set.Category
+
+\record ModelHom {T : Theory} \extends SetHom {
+  \override Dom : Models T
+  \override Cod : Models T
+  | func-comm {op : T.Sigma} (k : T op -> Dom) : func (interp op k) = interp op (\lam a => func (k a))
+}
+
+\func T-hom (T : Theory) (X Y : Models T) => ModelHom { | T => T | Dom => X | Cod => Y }
+
+\func initialHom {T : Theory} {X : \Set} {M : Models T} (x : X -> M) : T-hom T (InitialModel T X) M \cowith
+  | func formula => formula x
+  | func-comm _ => idp
+
+\instance Mod (T : Theory) : Cat (Models T)
+  | Hom => T-hom T
+  | id _ => \new ModelHom {
+    | func x => x
+    | func-comm _ => idp
+  }
+  | o g f => \new ModelHom {
+    | func x => g (f x)
+    | func-comm _ => rewrite (func-comm {f}) (func-comm _)
+  }
+  | id-left => idp
+  | id-right => idp
+  | o-assoc => idp
+  | univalence => sip (\lam f _ => exts (\lam _ k => func-comm {f} k))
+
+\func ModProduct {T : Theory} (J : \Type) (M : J -> Models T) : Product M (ProductModel M) \cowith
+  | proj j => \new ModelHom {
+    | func p => p j
+    | func-comm _ => idp
+  }
+  | tupleMap h => \new ModelHom {
+    | func z j => h j z
+    | func-comm k => ext (\lam j => func-comm {h j} k)
+  }
+  | tupleBeta => idp
+  | tupleEq eq => exts (\lam z => exts (\lam j => pmap (\lam (f : T-hom T _ _) => f z) (eq j)))
+
+\func ModEqualizer {T : Theory} {L M : Models T} (f g : T-hom T L M) : Equalizer {Mod T} f g \cowith
+  | apex => SubModel (\new CongruentProp {
+    | P x => f x = g x
+    | is-congruent eq => rewrite (func-comm {f}, func-comm {g}) (pmap (interp _) (ext eq))
+  })
+  | eql => \new ModelHom {
+    | func => __.1
+    | func-comm _ => idp
+  }
+  | equal => exts __.2
+  | isEqualizer Z => \new QEquiv {
+    | ret (h, p) => \new ModelHom {
+      | func z => (h z, pmap (\lam (f : T-hom _ _ _) => f z) p)
+      | func-comm k => ext (func-comm k)
+    }
+    | ret_f _ => exts (\lam _ => ext idp)
+    | f_sec _ => ext idp
+  }
+
+\instance CompleteMod (T : Theory) : CompleteCat (Models T)
+  | Cat => Mod T
+  | limit => limits<=pr+eq ModProduct ModEqualizer
