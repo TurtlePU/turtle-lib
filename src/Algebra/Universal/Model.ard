@@ -1,0 +1,9 @@
+\import Algebra.Universal.Interpretation
+\import Algebra.Universal.Theory
+
+\class Model \extends Interpretation {
+  \override T : Theory
+  | eqn-sat (e : Eqn {T}) (xs : context e -> E) : eqn-left e ! xs = eqn-right e ! xs
+}
+
+\meta Models T => Model { | T => T }

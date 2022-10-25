@@ -1,0 +1,20 @@
+\import Algebra.Universal.Interpretation
+\import Algebra.Universal.Signature
+
+\class Theory \extends Signature
+  | Eqn : \Set
+  | context : Eqn -> \Set
+  | eqn-left (e : Eqn) : Sentence (context e)
+  | eqn-right (e : Eqn) : Sentence (context e)
+  \where {
+    \func fromEquations (S : Signature) (Eqn : \Set)
+                        (eq : Eqn -> \Sigma (C : \Set) (\Pi {I : Interprets S} -> (C -> I) -> \Sigma I I))
+      : Theory \cowith
+      | Signature => S
+      | Eqn => Eqn
+      | context => (eq __).1
+      | eqn-left e => ((eq e).2 {Interpretation.Initial _ _} Signature.var).1
+      | eqn-right e => ((eq e).2 {Interpretation.Initial _ _} Signature.var).2
+
+    \func \infix 1 =:= {X : \Type} (x y : X) : \Sigma X X => (x, y)
+  }
