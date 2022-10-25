@@ -1,0 +1,22 @@
+\import Data.Bool
+\import Meta
+\import Order.BooleanAlgebra
+
+\instance Boolean : BooleanAlgebra Bool
+  | <= x y => So (not x or y)
+  | <=-refl {x} => cases x so
+  | <=-transitive {x} {y} {z} x->y y->z => cases (x, y, z, x->y, y->z) so
+  | <=-antisymmetric {x} {y} x->y y->x => cases (x, y, x->y, y->x) idp
+  | meet => and
+  | meet-left {x} {y} => cases (x, y) so
+  | meet-right {x} {y} => cases (x, y) so
+  | meet-univ {x} {y} {z} x->z y->z => cases (x, y, z, x->z, y->z) so
+  | bottom => false
+  | bottom-univ => so
+  | comp => not
+  | non-contradiction x => cases x idp
+  | comp-univ {x} {c} xc=0 => cases (x, c, xc=0) so \with {
+    | true, true, ()
+  }
+  | comp-inv x => cases x idp
+  | ldistr>= {x} {y} {z} => cases (x, y, z) so

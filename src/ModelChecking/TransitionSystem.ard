@@ -1,0 +1,260 @@
+\import Data.Bool
+\import Data.BoolUtils
+\import Data.Or
+\import Equiv
+\import Logic
+\import Meta
+\import Order.BooleanAlgebra
+\import Order.Lattice
+\import Order.PartialOrder
+\import Set
+
+\class TransitionSystem \extends BaseSet {
+  | Act : \Set
+  | Trans : E -> Act -> E -> \Prop
+  | Init : E -> \Prop
+  | AtomProp : \Set
+  | Label : E -> AtomProp -> Bool
+}
+
+\func \infix 4 -[ {TS : TransitionSystem} (s : TS) (p : \Sigma TS.Act TS) => Trans s p.1 p.2
+
+\func \infix 5 ]-> {A B : \Set} (a : A) (b : B) => (a, b)
+
+\instance CountingModulo4 : TransitionSystem (Fin 4) {
+  | Act => Act
+  | Trans m a n => \case \elim a \with {
+    | Inc => Fin.fromNat (suc m) = n
+  }
+  | Init => __ = 0
+  | AtomProp => AtomProp
+  | Label n p => \case \elim n, \elim p \with {
+    | 0, zero => true
+    | suc _, pos => true
+    | _, _ => false
+  }
+} \where {
+  \data Act | Inc
+
+  \data AtomProp | zero | pos
+}
+
+\func Formula (TS : TransitionSystem) : \Set => BooleanAlgebra.Formula TS.AtomProp
+
+\func \infix 5 |= {TS : TransitionSystem} (s : TS) (phi : Formula TS) : Bool => phi {Boolean} (Label s)
+
+\record FiniteExecutionFragment (TS : TransitionSystem) {
+  | fragment-length : Nat
+  | fef-path-fragment : Array TS (suc fragment-length)
+  | fef-actions : Array TS.Act fragment-length
+  | fef-is-ef : DArray {fragment-length} (\lam i => fef-path-fragment i -[ fef-actions i ]-> fef-path-fragment (suc i))
+}
+
+\record MaximalFEF \extends FiniteExecutionFragment {
+  | is-maximal : is-terminal (fef-path-fragment fragment-length)
+} \where {
+  \func is-terminal {TS : TransitionSystem} (s : TS) =>
+    \Pi (a : TS.Act) (t : TS) (s -[ a ]-> t) -> Empty
+}
+
+\record InitialFEF \extends FiniteExecutionFragment {
+  | fef-is-initial : Init (fef-path-fragment 0)
+}
+
+\record FiniteExecution \extends InitialFEF, MaximalFEF
+
+\record InfiniteExecutionFragment (TS : TransitionSystem) {
+  | ief-path-fragment : Nat -> TS
+  | ief-actions : Nat -> TS.Act
+  | ief-is-ef : \Pi (i : Nat) -> ief-path-fragment i -[ ief-actions i ]-> ief-path-fragment (suc i)
+}
+
+\record InfiniteExecution \extends InfiniteExecutionFragment {
+  | ief-is-initial : Init (ief-path-fragment 0)
+}
+
+\func reachable {TS : TransitionSystem} (s : TS) =>
+  \Sigma (e : InitialFEF TS) (e.fef-path-fragment e.fragment-length = s)
+
+\func Reach (TS : TransitionSystem) =>
+  \Pi (s : TS) -> TruncP (reachable s)
+
+\record SequentialCircuit (n k m : Nat) {
+  | transition : Word n -> Word k -> Word k
+  | output : Word n -> Word k -> Word m
+  | initial : Word n -> Word k -> Bool
+} \where {
+  \func Word (n : Nat) => Array Bool n
+}
+
+\func TS-for-SC {n k m : Nat} (SC : SequentialCircuit n k m) : TransitionSystem \cowith {
+  | E => \Sigma (Word n) (Word k)
+  | Act => Tau
+  | Trans (x, r) a (x', r') => \case \elim a \with {
+    | tau => r' = SC.transition x r
+  }
+  | Init (x, r) => So (SC.initial x r)
+  | AtomProp => Variables SC
+  | Label (x, r) v => \case \elim v \with {
+    | input-var i => x i
+    | register-var i => r i
+    | output-var i => SC.output x r i
+  }
+} \where {
+  \open SequentialCircuit
+
+  \data Tau | tau
+
+  \data Variables {n k m : Nat} (SC : SequentialCircuit n k m)
+    | input-var (Fin n)
+    | register-var (Fin k)
+    | output-var (Fin m)
+}
+
+\class PropTransitionSystem \extends TransitionSystem, DecSet {
+  | AtomProp => E
+  | Label => ==
+}
+
+\data Semaphore | Red | Green
+
+\instance SemaphoreEq : DecSet Semaphore {
+  | decideEq => \case \elim __, \elim __ \with {
+    | Red, Red => yes idp
+    | Red, Green => no (\case __)
+    | Green, Red => no (\case __)
+    | Green, Green => yes idp
+  }
+}
+
+\instance SemaphoreTransition : PropTransitionSystem Semaphore {
+  | DecSet => SemaphoreEq
+  | Act => Action
+  | Trans => Transition
+  | Init => __ = Red
+} \where {
+  \data Action | alpha | beta
+
+  \data Transition (s : Semaphore) (a : Action) (t : Semaphore) \with
+    | Red, alpha, Green => Red-to-Green
+    | Green, beta, Red => Green-to-Red
+
+  \func op : PropTransitionSystem Semaphore \cowith
+    | DecSet => SemaphoreEq
+    | Act => Action
+    | Trans => Transition
+    | Init => __ = Green
+}
+
+\func \infixl 4 ||| (TS1 TS2 : TransitionSystem) : TransitionSystem \cowith {
+  | E => \Sigma TS1 TS2
+  | Act => TS1.Act `Or` TS2.Act
+  | Trans (s1, s2) a (t1, t2) => \case \elim a \with {
+    | inl a => \Sigma (s1 -[ a ]-> t1) (s2 = t2)
+    | inr a => \Sigma (s1 = t1) (s2 -[ a ]-> t2)
+  }
+  | Init (i1, i2) => \Sigma (Init i1) (Init i2)
+  | AtomProp => TS1.AtomProp `Or` TS2.AtomProp
+  | Label (s1, s2) ap => \case \elim ap \with {
+    | inl ap => Label s1 ap
+    | inr ap => Label s2 ap
+  }
+}
+
+\func BadCrossing => SemaphoreTransition ||| SemaphoreTransition.op \where {
+  \open SemaphoreTransition
+
+  \func collision : Formula BadCrossing => \lam v => v (inl Green) ∧ v (inr Green)
+
+  \func bad-state : BadCrossing => (Green, Green)
+
+  \func collision-satisfiable : So (bad-state |= collision) => so
+
+  \func collision-reachable : reachable {BadCrossing} bad-state =>
+    (\new InitialFEF {
+       | fragment-length => 1
+       | fef-path-fragment => (Red, Green) :: (Green, Green) :: nil
+       | fef-actions => inl alpha :: nil
+       | fef-is-ef => (Red-to-Green, idp) :: nil
+       | fef-is-initial => (idp, idp)
+     }, idp)
+}
+
+\func ||MP (TS1 TS2 : TransitionSystem) {Act : \Set}
+           (act1 : Embedding {Act} {TS1.Act})
+           (act2 : Embedding {Act} {TS2.Act}) : TransitionSystem
+\cowith {
+  | E => \Sigma TS1 TS2
+  | Act => Act `Or` (TS1.Act `Or` TS2.Act)
+  | Trans (s1, s2) a (t1, t2) => \case \elim a \with {
+    | inl a => \Sigma (s1 -[ act1 a ]-> t1) (s2 -[ act2 a ]-> t2)
+    | inr a => \case \elim a \with {
+      | inl a => \Sigma (s1 -[ a ]-> t1) (s2 = t2) (\Pi (a' : Act) -> act1 a' /= a)
+      | inr a => \Sigma (s2 -[ a ]-> t2) (s1 = t1) (\Pi (a' : Act) -> act2 a' /= a)
+    }
+  }
+  | Init (s1, s2) => \Sigma (Init s1) (Init s2)
+  | AtomProp => TS1.AtomProp `Or` TS2.AtomProp
+  | Label (s1, s2) ap => \case \elim ap \with {
+    | inl ap => Label s1 ap
+    | inr ap => Label s2 ap
+  }
+}
+
+\func GoodCrossing => ||MP BadCrossing Scheduler injBad injSched \where {
+  \open SemaphoreTransition
+
+  \data Active | First | Second
+
+  \data SchedTrans (s : Active) (a : Action) (t : Active) \with
+    | First, beta, Second => First-to-Second
+    | Second, alpha, First => Second-to-First
+
+  \instance Scheduler : PropTransitionSystem Active {
+    | Act => Action
+    | Trans => SchedTrans
+    | Init => __ = First
+    | decideEq => \case \elim __, \elim __ \with {
+      | First, First => yes idp
+      | First, Second => no (\case __)
+      | Second, First => no (\case __)
+      | Second, Second => yes idp
+    }
+  }
+
+  \func injBad => Embedding.fromInjection {Action} {Action `Or` Action} {\case \elim __ \with {
+    | alpha => inl alpha
+    | beta => inr beta
+  }} (\lam {a} {a'} => cases (a, a') (\lam _ => idp) \with {
+    | alpha, beta => \case __
+    | beta, alpha => \case __
+  })
+
+  \func injSched => Embedding.fromInjection {Action} {Action} {\lam a => a} (\lam p => p)
+
+  \func collision : Formula GoodCrossing => \lam v => v (inl (inl Green)) ∧ v (inl (inr Green))
+
+  \func collision-unreachable (s : GoodCrossing) (oops : So (s |= collision)) (reach : reachable {GoodCrossing} s)
+    : Empty \elim reach
+    | ((0, :: s' nil, _, _, i), q) => {?} -- ((Red, Green), _) |= Green1 & Green2
+    | ((suc n, ss, a, p, i), q) => {?} -- look at the last transition in execution fragment
+}
+
+\record LinearTimeProperty (AP : \Set) {
+  | property : Nat -> AP -> Bool
+} \where {
+  \use \coerce to {AP : \Set} (p : LinearTimeProperty AP) : Nat -> AP -> Bool => p.property
+}
+
+\func \infix 5 LT|= {TS : TransitionSystem} (s : TS) (p : LinearTimeProperty TS.AtomProp) =>
+  \Pi (ef : InfiniteExecutionFragment TS) (ef.ief-path-fragment 0 = s)
+      (i : Nat) (a : TS.AtomProp) -> Label (ef.ief-path-fragment i) a Boolean.<= p i a
+
+\func \infix 5 TSLT|= (TS : TransitionSystem) (p : LinearTimeProperty TS.AtomProp) =>
+  \Pi (ef : InfiniteExecutionFragment TS) (i : Nat) (a : TS.AtomProp) ->
+      Label (ef.ief-path-fragment i) a Boolean.<= p i a
+
+\record InvariantLTP \extends LinearTimeProperty {
+  | formula : BooleanAlgebra.Formula AP
+  | isRepr (i : Nat) : So (formula {_} {Boolean} (property i))
+}
