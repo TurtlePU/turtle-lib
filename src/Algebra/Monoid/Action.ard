@@ -4,6 +4,6 @@
 
 \class MonoidAction \extends BaseSet
   | C : Monoid
-  | \infixr 6 c* : C -> E -> E
+  | \infixr 7 c* : C -> E -> E
   | ide-c* {x : E} : ide c* x = x
-  | *-c* {a b : C} {x : E} : a * b c* x = a c* b c* x
+  | *-c* {a b : C} {x : E} : (a * b) c* x = a c* b c* x

@@ -1,0 +1,9 @@
+\import Algebra.Group
+\import Algebra.Monoid.Action
+\import Algebra.Ring
+
+\class Module \extends MonoidAction, AbGroup {
+  \override C : Ring
+  | c*-rdistr {c : C} {x y : E} : c c* (x + y) = c c* x + c c* y
+  | c*-ldistr {c d : C} {x : E} : (c + {C} d) c* x = c c* x + d c* x
+}

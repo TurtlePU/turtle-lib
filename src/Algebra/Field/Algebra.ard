@@ -1,0 +1,5 @@
+\import Algebra.Field.VectorSpace
+\import Algebra.Ring
+
+\class Algebra \extends VectorSpace, Ring
+  | c*-comp {c d : C} {x y : E} : (c c* x) * (d c* y) = (c * {C} d) c* (x * y)

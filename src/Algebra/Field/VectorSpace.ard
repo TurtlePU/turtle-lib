@@ -1,0 +1,6 @@
+\import Algebra.Field
+\import Algebra.Ring.Module
+
+\class VectorSpace \extends Module {
+  \override C : Field
+}
