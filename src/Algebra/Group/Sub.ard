@@ -1,0 +1,47 @@
+\import Algebra.Group
+\import Algebra.Group.Action
+\import Algebra.Monoid
+\import Algebra.Monoid.Sub
+\import Algebra.Monoid.SubInstance
+\import HLevel
+\import Logic
+\import Meta
+\import Paths
+\import Paths.Meta
+\import Relation.Equivalence
+
+\record SubGroup \extends SubMonoid {
+  \override E : Group
+  | sub-inv {x : E} : S x -> S (inverse x)
+}
+
+\instance SubGroupInstance {G : Group} (S : SubGroup {G}) : Group (\Sigma (x : G) (S x))
+  | Monoid => SubMonoidInstance S
+  | inverse (x, Sx) => (inverse x, sub-inv Sx)
+  | inverse-left => ext inverse-left
+  | inverse-right => ext inverse-right
+
+\func SubGroupAction {G : Group} (S : SubGroup {G}) : GroupAction G \cowith
+  | A => SubGroupInstance S
+  | MonoidAction => SubMonoidAction S
+
+\func Class {G : Group} (S : SubGroup {G}) (x y : G) => GroupAction.Orbit {SubGroupAction S} x y
+  \where {
+    \open Equivalence
+
+    \use \level levelProp {G : Group} (S : SubGroup {G}) {x y : G} : isProp (Class S x y) =>
+      \lam ((g, _), o) ((g', _), o') => run { ext, ext, cancel-right x, o *> inv o' }
+
+    \lemma fromOrbit {G : Group} {S : SubGroup {G}} {x y : G} (o : x ~ {GroupAction.SameOrbit {SubGroupAction S}} y)
+      : Class S x y \elim o
+      | inP c => c
+
+    \lemma runClosure {G : Group} {S : SubGroup {G}} {x y : G} (c : Closure (Class S) x y) : Class S x y \elim c
+      | cin r => r
+      | crefl idp => fromOrbit (~-reflexive {GroupAction.SameOrbit {SubGroupAction S}})
+      | csym c => fromOrbit (~-symmetric (inP (runClosure c)))
+      | ctrans c1 c2 => fromOrbit (~-transitive (inP (runClosure c1)) (inP (runClosure c2)))
+
+    \lemma equality {G : Group} {S : SubGroup {G}} {x y : G} (p : in~ x = {Quotient (Class S)} in~ y) : Class S x y =>
+      runClosure (Quotient.equality p)
+  }

@@ -1,0 +1,58 @@
+\import Algebra.Group
+\import Algebra.Group.Action
+\import Algebra.Group.Sub
+\import Algebra.Meta
+\import Algebra.Monoid
+\import Algebra.Pointed
+\import Meta
+\import Paths
+\import Paths.Meta
+\import Relation.Equivalence
+
+\record NormalSubGroup \extends SubGroup {
+  | sub-conj {x y : E} : S x -> S (y * x * inverse y)
+
+  \lemma sub-lconj {x y : E} : S x -> S (inverse y * x * y) =>
+    \lam Sx => rewriteI {2} (Group.inverse-isInv y) (sub-conj Sx)
+}
+
+\func FullSubGroup (G : Group) : NormalSubGroup (\lam (_ : G) => \Sigma) \cowith
+  | sub-id => ()
+  | sub-* _ _ => ()
+  | sub-inv _ => ()
+  | sub-conj _ => ()
+
+\func Self (G : Group) : GroupAction G => SubGroupAction (FullSubGroup G)
+
+\instance QuotGroup {G : Group} (S : NormalSubGroup {G}) : Group (Quotient (Class S))
+  | ide => in~ ide
+  | * => \case \elim __, \elim __ \with {
+    | in~ g, in~ h => in~ (g * h)
+    | in~ e, ~-equiv x y cls => run {
+      path, ~-equiv _ _, ((_, sub-conj cls.1.2), __) : _ -> Class S (e * x) (e * y),
+      rewriteEq (*-left-lem, inverse-left {G} {e}, cls.2) idp
+    }
+    | ~-equiv _ _ cls, in~ _ => run {
+      path, ~-equiv _ _, (_, __) : _ -> Class S _ _,
+      inv *-assoc *> pmap (__ * _) cls.2
+    }
+  }
+  | ide-left {in~ _} => pmap in~ ide-left
+  | ide-right {in~ _} => pmap in~ ide-right
+  | *-assoc {in~ _} {in~ _} {in~ _} => pmap in~ *-assoc
+  | inverse => \case \elim __ \with {
+    | in~ x => in~ (inverse x)
+    | ~-equiv x y cls => run {
+      path, ~-equiv (inverse x) (inverse y),
+      ((inverse (inverse x * cls.1.1 * x), sub-inv (NormalSubGroup.sub-lconj cls.1.2)), __)
+      : _ -> Class S (inverse x) (inverse y),
+      rewrite (inv (Group.inverse_* x _), inverse-lem, inverse-right, ide-left, cls.2) idp
+    }
+  }
+  | inverse-left {in~ _} => pmap in~ inverse-left
+  | inverse-right {in~ _} => pmap in~ inverse-right
+  \where {
+    \lemma *-left-lem {G : Group} {e g e' x : G} : (e * g * e') * (e * x) = e * g * (e' * e) * x => equation
+
+    \lemma inverse-lem {G : Group} {x x' g : G} : (x * (x' * g * x)) = (x * x') * g * x => equation
+  }

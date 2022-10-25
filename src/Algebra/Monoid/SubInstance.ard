@@ -1,0 +1,18 @@
+\import Algebra.Monoid
+\import Algebra.Monoid.Action
+\import Algebra.Monoid.Sub
+\import Algebra.Pointed
+\import Paths.Meta
+
+\instance SubMonoidInstance {M : Monoid} (S : SubMonoid {M}) : Monoid (\Sigma (x : M) (S x))
+  | ide => (ide, sub-id)
+  | * (x, Sx) (y, Sy) => (x * y, sub-* Sx Sy)
+  | ide-left => ext ide-left
+  | ide-right => ext ide-right
+  | *-assoc => ext *-assoc
+
+\func SubMonoidAction {M : Monoid} (S : SubMonoid {M}) : MonoidAction M \cowith
+  | A => SubMonoidInstance S
+  | |> (x, _) y => x * y
+  | ide_|> => ide-left
+  | *_|> => *-assoc
