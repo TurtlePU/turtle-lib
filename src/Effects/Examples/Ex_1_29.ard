@@ -1,0 +1,32 @@
+\import Algebra.Universal.Formula
+\import Algebra.Universal.Interpretation
+\import Algebra.Universal.Model
+\import Algebra.Universal.Model.Product
+\import Algebra.Universal.Signature
+\import Effects.Examples.Ex_1_2
+\import Equiv
+\import HLevel
+\import Logic
+\import Paths.Meta
+\open Signature
+\open Interpretation
+
+\func triv-equiv : QEquiv {ProductModel {GroupTheory} (absurd {Models GroupTheory})} {InitialModel GroupTheory Empty} \cowith
+  | f _ => interp {InitialModel _ _} munit absurd
+  | ret => {?}
+  | ret_f _ => is-product-triv _ _
+  | f_sec => is-free-triv
+  \where {
+    \lemma is-product-triv : isProp (ProductModel {GroupTheory} (absurd {Models GroupTheory})) =>
+      \lam _ _ => exts (\case __)
+
+    \lemma is-expr-zeroed (e : GroupTheory.Sentence Empty)
+      : interp {InitialModel _ _} munit absurd = {InitialModel GroupTheory Empty} e ! {InitialModel _ _} absurd
+      | var ()
+      | cont munit k => {?}
+      | cont mappend k => {?}
+      | cont minv k => {?}
+
+    \lemma is-free-triv (e : Formula GroupTheory Empty)
+      : interp {InitialModel _ _} munit absurd = {InitialModel GroupTheory Empty} e => {?}
+  }

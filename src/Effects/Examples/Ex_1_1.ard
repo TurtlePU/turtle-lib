@@ -1,0 +1,17 @@
+\import Algebra.Universal.Interpretation
+\import Algebra.Universal.Signature
+\import Data.Bool
+\import Logic
+
+\data MonoidSigma | mzero | mappend
+
+\func MonoidSig : Signature \cowith
+  | Sigma => MonoidSigma
+  | param => \case \elim __ \with {
+    | mzero => Empty
+    | mappend => Bool
+  }
+
+\func u {I : Interprets MonoidSig} : I => interp mzero absurd
+
+\func \infix 6 * {I : Interprets MonoidSig} (x y : I) : I => interp mappend (if __ x y)

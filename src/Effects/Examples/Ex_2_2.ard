@@ -1,0 +1,45 @@
+\import Algebra.Universal.Interpretation
+\import Algebra.Universal.Signature
+\import Algebra.Universal.Theory
+\import Logic
+\open Theory
+
+\data StateSigma (L S : \Set) | lookup L | update L S
+
+\func StateSignature (L S : \Set) : Signature (StateSigma L S) \cowith
+  | param => \case \elim __ \with {
+    | lookup _ => S
+    | update _ _ => \Sigma
+  }
+
+\data StateEqn (L S : \Set)
+  | lookup-lookup L
+  | lookup-update L
+  | update-lookup L S
+  | update-update L S S
+  | lookup-swap (l l' : L) (l /= l')
+  | distribute (l l' : L) (l /= l') S
+  | update-swap (l l' : L) (l /= l') S S
+
+\func StateTheory (L S : \Set) : Theory =>
+  Theory.fromEquations (StateSignature L S) (StateEqn L S) (\case \elim __ \with {
+    | lookup-lookup l => (\Sigma S S, \lam x =>
+        interp (lookup l) (\lam s => interp (lookup l) (\lam t => x (s, t)))
+          =:= interp (lookup l) (\lam s => x (s, s)))
+    | lookup-update l => (\Sigma, \lam x => interp (lookup l) (\lam s => interp (update l s) x) =:= x ())
+    | update-lookup l s => (S, \lam x =>
+        interp (update l s) (\lam _ => interp (lookup l) x)
+          =:= interp (update l s) (\lam _ => x s))
+    | update-update l s t => (\Sigma, \lam x =>
+        interp (update l s) (\lam _ => interp (update l t) x)
+          =:= interp (update l t) x)
+    | lookup-swap l l' _ => (\Sigma S S, \lam x =>
+        interp (lookup l) (\lam s => interp (lookup l') (\lam t => x (s, t)))
+          =:= interp (lookup l') (\lam t => interp (lookup l) (\lam s => x (s, t))))
+    | distribute l l' _ s => (S, \lam x =>
+        interp (update l s) (\lam _ => interp (lookup l') x)
+          =:= interp (lookup l') (\lam t => interp (update l s) (\lam _ => x t)))
+    | update-swap l l' _ s t => (\Sigma, \lam x =>
+        interp (update l s) (\lam _ => interp (update l' t) x)
+          =:= interp (update l' t) (\lam _ => interp (update l s) x))
+  })

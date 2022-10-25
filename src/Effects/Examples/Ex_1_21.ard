@@ -1,0 +1,40 @@
+\import Algebra.Group
+\import Algebra.Monoid
+\import Algebra.Monoid.Category
+\import Algebra.Pointed.Category
+\import Algebra.Universal.Interpretation
+\import Algebra.Universal.Model
+\import Algebra.Universal.Model.Category
+\import Data.Bool
+\import Equiv
+\import Effects.Examples.Ex_1_12
+\import Effects.Examples.Ex_1_2 \hiding (*)
+\import Logic
+\import Meta
+\import Paths
+\import Paths.Meta
+
+\func hom-equiv (L M : Models GroupTheory) : QEquiv {T-hom _ L M} {MonoidHom { | Dom => equiv L | Cod => equiv M }} \cowith
+  | f H => \new MonoidHom {
+    | func => H
+    | func-ide => func-comm {H} {munit} absurd *> pmap (interp _) (equiv.absurd-lem _)
+    | func-* x y => func-comm {H} {mappend} (if __ x y) *> pmap (interp _) (ext (\lam p => cases p idp))
+  }
+  | ret f => \new T-hom GroupTheory L M {
+    | func => f
+    | func-comm {op : GroupSigma} => (\case \elim op \with {
+      | munit => \lam _ => rewrite equiv.absurd-lem (func-ide {f}) *> rewriteI equiv.absurd-lem idp
+      | mappend => \lam k => rewrite equiv.if-eta (func-* {f} (k true) (k false)) *> rewrite (equiv.if-eta (\lam t => f (k t))) idp
+      | minv => \lam k => func-inv f (k ()) *> rewrite equiv.unit-eta idp
+    } : \Pi (k : GroupTheory op -> L) -> f (interp op k) = interp op (\lam t => f (k t)))
+  }
+  | ret_f _ => idp
+  | f_sec _ => idp
+  \where {
+    \lemma func-inv {G H : Group} (f : MonoidHom { | Dom => G | Cod => H }) (x : G) : f (inverse x) = inverse (f x) =>
+      MonoidHom.presInvElem f inv=Inv inv=Inv
+
+    \lemma inv=Inv {G : Group} {x : G} : Monoid.Inv x (inverse x) \cowith
+      | inv-left => inverse-left
+      | inv-right => inverse-right
+  }

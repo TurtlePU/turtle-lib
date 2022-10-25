@@ -1,0 +1,7 @@
+\import Algebra.Universal.Model
+\import Effects.Examples.Ex_1_10
+\import Paths.Meta
+
+\instance Manifold (M R : \Set) : Model (M -> R) (C-Ring R)
+  | interp (_, f) v x => f (v __ x)
+  | eqn-sat (_, _, _, p) v => ext (\lam x => p (v __ x))

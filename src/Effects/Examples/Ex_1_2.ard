@@ -1,0 +1,31 @@
+\import Algebra.Universal.Interpretation
+\import Algebra.Universal.Signature
+\import Algebra.Universal.Theory
+\import Data.Bool
+\import Logic
+\open Theory
+
+\data GroupSigma | munit | mappend | minv
+
+\func GroupSig : Signature GroupSigma \cowith
+  | param => \case \elim __ \with {
+    | munit => Empty
+    | mappend => Bool
+    | minv => \Sigma
+  }
+
+\func u {I : Interprets GroupSig} : I => interp munit absurd
+
+\func \infix 6 * {I : Interprets GroupSig} (x y : I) : I => interp mappend (if __ x y)
+
+\func i {I : Interprets GroupSig} (x : I) : I => interp minv (\lam _ => x)
+
+\data GroupEqns | associativity | left-unit | right-unit | left-inverse | right-inverse
+
+\func GroupTheory : Theory GroupSigma => Theory.fromEquations GroupSig GroupEqns (\case \elim __ \with {
+  | associativity => (Fin 3, \lam x => (x 0 * x 1) * x 2 =:= x 0 * (x 1 * x 2))
+  | left-unit => (Fin 1, \lam x => u * x 0 =:= x 0)
+  | right-unit => (Fin 1, \lam x => x 0 * u =:= x 0)
+  | left-inverse => (Fin 1, \lam x => i (x 0) * x 0 =:= u)
+  | right-inverse => (Fin 1, \lam x => x 0 * i (x 0) =:= u)
+})

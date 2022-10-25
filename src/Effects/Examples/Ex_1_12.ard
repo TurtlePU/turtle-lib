@@ -1,0 +1,61 @@
+\import Algebra.Group
+\import Algebra.Monoid
+\import Algebra.Pointed
+\import Algebra.Universal.Interpretation
+\import Algebra.Universal.Model
+\import Data.Bool
+\import Equiv
+\import Effects.Examples.Ex_1_2 \hiding (*)
+\import Logic
+\import Meta
+\import Paths
+\import Paths.Meta
+
+\func equiv : QEquiv {Models GroupTheory} {Group} \cowith
+  | f M => \new Group M {
+    | ide => interp munit absurd
+    | * x y => interp mappend (if __ x y)
+    | ide-left {x} => via (eqn-sat left-unit (x :: nil)) (rewrite (step-*, absurd-lem) idp) idp
+    | ide-right {x} => via (eqn-sat right-unit (x :: nil)) (rewrite (step-*, absurd-lem) idp) idp
+    | *-assoc {x} {y} {z} => via (eqn-sat associativity (x :: y :: z :: nil)) (rewrite (step-*, step-*) idp) (rewrite (step-*, step-*) idp)
+    | inverse x => interp minv (\lam _ => x)
+    | inverse-left {x} => via (eqn-sat left-inverse (x :: nil)) (rewrite step-* idp) (rewrite absurd-lem idp)
+    | inverse-right {x} => via (eqn-sat right-inverse (x :: nil)) (rewrite step-* idp) (rewrite absurd-lem idp)
+  }
+  | ret G => \new Model G {
+    | interp => \case \elim __ \with {
+      | munit => \lam _ => ide
+      | mappend => \lam v => v true * v false
+      | minv => \lam v => inverse (v ())
+    }
+    | eqn-sat => \case \elim __ \with {
+      | associativity => \lam _ => *-assoc
+      | left-unit => \lam _ => ide-left
+      | right-unit => \lam _ => ide-right
+      | left-inverse => \lam _ => inverse-left
+      | right-inverse => \lam _ => inverse-right
+    }
+  }
+  | ret_f M => exts (idp, \case \elim __ \with {
+    | munit => \lam _ => rewriteI absurd-lem idp
+    | mappend => \lam _ => rewriteI if-eta idp
+    | minv => \lam k => rewrite (unit-eta k) idp
+  })
+  | f_sec _ => idp
+  \where {
+    \open Interpretation (!)
+
+    \lemma via {X : \Set} {x y z w : X} (p : y = z) (q : y = x) (r : z = w) : x = w => inv q *> p *> r
+
+    \lemma step-* {M : Models GroupTheory} {X : \Set} {v : X -> M} {x y : GroupTheory.Sentence X}
+      : interp mappend (if __ x y ! v) = interp mappend (if __ (x ! v) (y ! v)) => rewrite (if-comm (`! v)) idp
+
+    \lemma if-comm {X Y : \Set} {x y : X} (f : X -> Y) : (\lam b => f (if b x y)) = (\lam b => if b (f x) (f y)) =>
+      ext (\lam b => cases b idp)
+
+    \lemma if-eta {X : \Set} (f : Bool -> X) : f = (\lam b => if b (f true) (f false)) => ext (\lam b => cases b idp)
+
+    \lemma unit-eta {X : \Set} (f : (\Sigma) -> X) : f = (\lam _ => f ()) => ext (\lam p => cases p idp)
+
+    \lemma absurd-lem {X : \Set} (f : Empty -> X) : f = absurd => ext (\case __)
+  }

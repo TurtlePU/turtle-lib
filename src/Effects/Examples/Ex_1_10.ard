@@ -1,0 +1,17 @@
+\import Algebra.Universal.Formula
+\import Algebra.Universal.Signature
+\import Algebra.Universal.Theory
+\open Signature
+
+\func C-Ring-Sigma (R : \Set) => \Sigma (n : Nat) (Array R n -> R)
+
+\func C-Ring (R : \Set) : Theory \cowith
+  | Sigma => C-Ring-Sigma R
+  | param (n, _) => Fin n
+  | Eqn => \Sigma (f h : C-Ring-Sigma R) (g : Array (Array R h.1 -> R) f.1)
+                  (\Pi (x : Array R h.1) -> f.2 (g __ x) = h.2 x)
+  | context e => Fin e.2.1
+  | eqn-left e => cont e.1 (\lam a => cont (_, e.3 a) var)
+  | eqn-right e => cont e.2 var
+
+\func InitialCInfRing (R X : \Set) => InitialModel (C-Ring R) X
