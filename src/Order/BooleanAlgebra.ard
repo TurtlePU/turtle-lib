@@ -1,0 +1,41 @@
+\import Algebra.Monoid
+\import Meta
+\import Order.DeMorganAlgebra
+\import Order.HeytingAlgebra
+\import Order.Lattice
+\import Paths
+\import Paths.Meta
+
+\class BooleanAlgebra \extends HeytingAlgebra, DeMorganAlgebra {
+  | --> x y => comp x ∨ y
+  | rel-eval => rewrite (ldistr, non-contradiction _, bottom-left) meet-right
+  | rel-univ {x} xr<=y => run {
+    rewriteI (top-left, excluded-middle (non-contradiction x)),
+    rewrite (rdistr, join-comm),
+    join-monotone meet-left xr<=y
+  }
+
+  \lemma excluded-middle (x : E) : x ∨ comp x = top => DeMorganAlgebra.excluded-middle (non-contradiction x)
+} \where {
+  \lemma bottom-left {L : Bounded.JoinSemilattice} {x : L} : bottom ∨ x = x =>
+    zro-left {Bounded.JoinSemilattice.toMonoid L}
+
+  \func Formula (J : \Set) => \Pi {A : BooleanAlgebra} -> (J -> A) -> A
+
+  \instance Initial (J : \Set) : BooleanAlgebra (Formula J)
+    | <= phi psi => \Pi {A : BooleanAlgebra} (v : J -> A) -> phi v <= psi v
+    | <=-refl _ => <=-refl
+    | <=-transitive phi<=psi psi<=zeta v => phi<=psi v <=∘ psi<=zeta v
+    | <=-antisymmetric phi<=psi psi<=phi => ext (\lam v => <=-antisymmetric (phi<=psi v) (psi<=phi v))
+    | meet phi psi v => phi v ∧ psi v
+    | meet-left _ => meet-left
+    | meet-right _ => meet-right
+    | meet-univ zeta<=phi zeta<=psi v => meet-univ (zeta<=phi v) (zeta<=psi v)
+    | bottom _ => bottom
+    | bottom-univ _ => bottom-univ
+    | comp phi v => comp (phi v)
+    | non-contradiction _ => ext (\lam _ => non-contradiction _)
+    | comp-univ xc=0 _ => comp-univ (pmap (__ _) xc=0)
+    | comp-inv _ => ext (\lam _ => comp-inv _)
+    | ldistr>= _ => ldistr>=
+}

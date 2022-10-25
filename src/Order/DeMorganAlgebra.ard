@@ -1,0 +1,40 @@
+\import Meta
+\import Order.ComplementedPoset
+\import Order.Lattice
+\import Paths
+\import Paths.Meta
+
+\class DeMorganAlgebra \extends ComplementedPoset, Bounded.DistributiveLattice {
+  | comp-inv (x : E) : comp (comp x) = x
+
+  | top => comp bottom
+  | top-univ {x} => rewriteI (comp-inv x) (<=-comp bottom-univ)
+
+  | ∨ x y => comp (comp x ∧ comp y)
+  | join-left {x} {y} => transport (__ <= _) (comp-inv _) (<=-comp meet-left)
+  | join-right {x} {y} => transport (__ <= _) (comp-inv _) (<=-comp meet-right)
+  | join-univ {x} {y} {z} x<=z y<=z => run {
+    rewriteI (comp-inv z),
+    <=-comp, meet-univ (<=-comp x<=z),
+    <=-comp y<=z
+  }
+
+  \lemma backflip {x y : E} : comp x <= comp y -> y <= x =>
+    \lam ix<=iy => rewriteI (comp-inv x) (<=-flip ix<=iy)
+
+  \lemma flip-<= {x y : E} : comp x <= y -> comp y <= x => \lam ix<=y => rewriteI (comp-inv x) (<=-comp ix<=y)
+
+  \lemma <=-flip {x y : E} : x <= comp y -> y <= comp x => \lam x<=iy => rewriteI (comp-inv y) (<=-comp x<=iy)
+
+  \lemma comp-meet {x y : E} : comp (x ∧ y) = comp x ∨ comp y => unfold (rewrite (comp-inv x, comp-inv y) idp)
+
+  \lemma comp-top : comp top = bottom => comp-inv _
+
+  \lemma comp-join {x y : E} : comp (x ∨ y) = comp x ∧ comp y => comp-inv _
+
+  \lemma comp-bottom : comp bottom = top => idp
+
+  \lemma excluded-middle {x : E} : x ∧ comp x = bottom -> x ∨ comp x = top => \lam xc=0 => run {
+    rewriteI {1} (comp-inv x, comp-meet), rewrite (MeetSemilattice.meet-comm, xc=0) comp-bottom
+  }
+}

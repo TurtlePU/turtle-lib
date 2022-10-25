@@ -1,0 +1,5 @@
+\import Order.PartialOrder
+
+\class ComplementedPoset \extends Poset
+  | comp : E -> E
+  | <=-comp {x y : E} : x <= y -> comp y <= comp x

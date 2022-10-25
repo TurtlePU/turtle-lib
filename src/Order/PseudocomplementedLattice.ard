@@ -1,0 +1,14 @@
+\import Meta
+\import Order.ComplementedPoset
+\import Order.Lattice
+\import Paths.Meta
+
+\class PseudocomplementedLattice \extends ComplementedPoset, Bounded.Lattice
+  | non-contradiction (x : E) : x ∧ comp x = bottom
+  | comp-univ {x c : E} : x ∧ c = bottom -> c <= comp x
+  | <=-comp {_} {y} => \lam x<=y => run {
+    comp-univ, <=-antisymmetric __ bottom-univ,
+    meet-monotone x<=y <=-refl <=∘ rewrite (non-contradiction y) <=-refl
+  }
+  | top => comp bottom
+  | top-univ => comp-univ (<=-antisymmetric meet-left bottom-univ)
