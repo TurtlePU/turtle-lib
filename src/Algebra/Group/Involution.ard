@@ -1,0 +1,48 @@
+\import Algebra.Group
+\import Algebra.Group.Normal
+\import Algebra.Group.Sub
+\import Algebra.Involutive
+\import Algebra.Involutive.Category
+\import Algebra.Meta
+\import Algebra.Monoid
+\import Algebra.Monoid.Action
+\import Algebra.Monoid.Closure
+\import Data.Adjunct
+\import Data.List
+\import Data.ListUtils
+\import Function
+\import Logic
+\import Paths
+\import Paths.Meta
+
+\func InverseInvolution (G : Group) : Involutive G \cowith
+  | invert => inverse
+  | invert-inv => G.inverse-isInv
+
+\meta InvSub G => InvHom { | Cod => InverseInvolution G }
+
+\func SubGroupInvClosure {G : Group} (f : InvSub G) : SubGroup {G} \cowith
+  | SubMonoid => SubMonoidClosure f
+  | sub-inv {x} (inP (xs, idp)) => inP (map invert (reverse xs), foldMap.-map *> inv-lem)
+  \where {
+    \lemma inv-lem {G : Group} {f : InvSub G} {xs : List f.Dom}
+      : foldMap (f o invert) (reverse xs) = inverse (foldMap f xs) \elim xs
+      | nil => cancel-left 1 (rewrite inverse-right ide-left)
+      | :: a xs => rewriteEq (foldMap.func-*, f.func-inv, G.inverse_*) (pmap (__ * _) inv-lem)
+  }
+
+\func NormalInvClosure {G : Group} (f : InvSub G) : NormalSubGroup {G} \cowith
+  | SubGroup => SubGroupInvClosure (conj f)
+  | sub-conj {x} {g} (inP (xs, idp)) => inP (map (g ||>) xs, foldMap.-map *> conj-lem _ _ _)
+  \where {
+    \func conj {G : Group} (f : InvSub G) : InvHom (AdjunctInvolution G f.Dom) (InverseInvolution G) \cowith
+      | func (g, j) => g * f j * inverse g
+      | func-inv _ => rewrite (G.inverse_*, G.inverse_*, G.inverse-isInv, f.func-inv) *-assoc
+
+    \func \infixr 6 ||> {J : \Set} {G : Group} (g : G) => (g, ()) |> {AdjunctGroupAction (Self G) J}
+
+    \lemma conj-lem {G : Group} (f : InvSub G) (g : G) (xs : List (\Sigma G f.Dom))
+      : foldMap (conj f o (||>) g) xs = g * foldMap (conj f) xs * inverse g \elim xs
+      | nil => rewriteEq (inverse-right {G} {g}) idp
+      | :: _ xs => rewriteEq (conj-lem f g xs, G.inverse_*, G.inverse-left {g}) equation
+  }
