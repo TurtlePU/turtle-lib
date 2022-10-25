@@ -1,0 +1,30 @@
+\import Category
+\import Category.Meta
+\import Algebra.Involutive
+\import Paths.Meta
+\import Set.Category
+
+\record InvHom \extends SetHom {
+  \override Dom : Involutive
+  \override Cod : Involutive
+  | func-inv (e : Dom) : func (invert e) = invert (func e)
+}
+
+\instance InvSetCat : Cat Involutive
+  | Hom => InvHom
+  | id (X : Involutive) => \new InvHom X X {
+    | func x => x
+    | func-inv _ => idp
+  }
+  | o {X Y Z : Involutive} (g : InvHom Y Z) (f : InvHom X Y) => \new InvHom X Z {
+    | func x => g (f x)
+    | func-inv _ => rewrite (func-inv {f}) (func-inv _)
+  }
+  | id-left => idp
+  | id-right => idp
+  | o-assoc => idp
+  | univalence => sip (\lam f _ => exts (func-inv {f}))
+
+\func invHom (A : Involutive) : InvHom A A \cowith
+  | func => invert
+  | func-inv _ => idp

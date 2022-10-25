@@ -1,0 +1,5 @@
+\import Set
+
+\class Involutive \extends BaseSet
+  | invert : E -> E
+  | invert-inv (e : E) : invert (invert e) = e
