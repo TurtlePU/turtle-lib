@@ -1,0 +1,21 @@
+\import Algebra.Group
+\import Algebra.Group.Involution
+\import Algebra.Group.Normal
+\import Algebra.Group.Sub
+\import Algebra.Involutive
+\import Algebra.Involutive.Category
+\import Algebra.Monoid
+\import Data.Adjunct
+\import GeometricGroupTheory.Graph
+\import Paths.Meta
+
+\instance CayleyGraph {G : Group} (f : InvSub G) : ActionOnGraph
+  | GroupAction => AdjunctGroupAction (Self G) f.Dom
+  | invert (g, a) => (g * f a, invert a)
+  | invert-inv (g, a) => ext (rewriteEq (f.func-inv, G.inverse-right {f _}) ide-right, invert-inv _)
+  | V => Self G
+  | from => __.1
+  | to (g, a) => g * f a
+  | from-inv => idp
+  | invert_|> => rewrite *-assoc idp
+  | from_|> => idp
