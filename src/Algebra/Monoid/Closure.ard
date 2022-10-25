@@ -1,0 +1,11 @@
+\import Algebra.Monoid
+\import Algebra.Monoid.Sub
+\import Data.List
+\import Data.ListUtils
+\import Logic
+\import Logic.Meta
+
+\func SubMonoidClosure {J : \Set} {M : Monoid} (f : J -> M) : SubMonoid {M} \cowith
+  | S m => ∃ (js : List J) (foldMap f js = m)
+  | sub-id => inP (nil, idp)
+  | sub-* {x} {y} (inP (_, idp)) (inP (_, idp)) => inP (_ ++ _, foldMap.func-* _ _)

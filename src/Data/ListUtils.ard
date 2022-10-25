@@ -1,0 +1,28 @@
+\import Algebra.Monoid
+\import Algebra.Monoid.Category
+\import Data.List
+\import Function
+\import Paths
+\import Paths.Meta
+
+\func foldMap {A : \Set} {M : Monoid} (f : A -> M) : MonoidHom (ListMonoid {A}) M \cowith
+  | func => def f
+  | func-ide => idp
+  | func-* (xs ys : List A) : def f (xs ++ ys) = def f xs * def f ys \elim xs {
+    | nil => inv ide-left
+    | :: _ _ => rewrite func-* (inv *-assoc)
+  }
+  \where {
+    \func def {A : \Set} {M : Monoid} (f : A -> M) (xs : List A) : M \elim xs
+      | nil => 1
+      | :: a xs => f a * def f xs
+
+    \lemma -map {A B : \Set} {M : Monoid} {g : B -> M} {f : A -> B} {xs : List A}
+      : foldMap g (map f xs) = foldMap (g o f) xs \elim xs
+      | nil => idp
+      | :: _ _ => pmap (_ *) -map
+  }
+
+\func reverse {A : \Set} (xs : List A) : List A \elim xs
+  | nil => nil
+  | :: a xs => reverse xs ++ a :: nil
