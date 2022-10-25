@@ -1,0 +1,6 @@
+\import GeometricGroupTheory.Graph
+
+\data GraphPath (G : Graph) (u v : G.V)
+  | loop (u = v)
+  | \infixr 6 +> {w : G.V} (e : G.E' u w) (GraphPath G w v)
+  | glue {w : G.V} (e : G.E' u w) (p : GraphPath G u v) : e +> G.invert' e +> p = p

@@ -1,0 +1,30 @@
+\import Algebra.Group.Action
+\import Algebra.Involutive
+\import Paths
+\import Paths.Meta
+\import Set
+
+\class Graph (V : BaseSet) \extends Involutive {
+  | from : E -> V
+  | to : E -> V
+  | from-inv {e : E} : from (invert e) = to e
+
+  \lemma to-inv {e : E} : to (invert e) = from e =>
+    rewrite (inv from-inv, invert-inv) idp
+
+  \func E' (u v : V) => \Sigma (e : E) (from e = u) (to e = v)
+
+  \func invert' {u v : V} : E' u v -> E' v u =>
+    \lam (e, fe=u, te=v) => (invert e, from-inv *> te=v, to-inv *> fe=u)
+
+  \lemma invert'_isInv {u v : V} {e : E' u v} : invert' (invert' e) = e => ext (invert-inv _)
+}
+
+\class ActionOnGraph \extends GroupAction, Graph {
+  \override V : GroupAction { | A => A }
+  | invert_|> {g : A} {e : E} : invert (g |> e) = g |> invert e
+  | from_|> {g : A} {e : E} : from (g |> e) = g |> {V} from e
+
+  \lemma to_|> {g : A} {e : E} : to (g |> e) = g |> {V} to e =>
+    rewrite (inv from-inv, invert_|>, from_|>, from-inv) idp
+}
