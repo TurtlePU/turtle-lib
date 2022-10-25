@@ -1,0 +1,52 @@
+\import Algebra.Group.Action
+\import Algebra.Group
+\import Algebra.Group.Involution
+\import Algebra.Involutive
+\import Algebra.Involutive.Category
+\import Algebra.Monoid.Action
+\import Data.Adjunct
+\import Function
+\import Meta
+\import Paths
+
+\data Sign | +1 | ~1
+
+\instance SignGroup : Group Sign
+  | ide => +1
+  | * => \case \elim __, \elim __ \with {
+    | +1, +1 => +1
+    | +1, ~1 => ~1
+    | ~1, +1 => ~1
+    | ~1, ~1 => +1
+  }
+  | ide-left {x} => cases x idp
+  | ide-right {x} => cases x idp
+  | *-assoc {x} {y} {z} => cases (x, y, z) idp
+  | inverse x => x
+  | inverse-left {x} => cases x idp
+  | inverse-right {x} => cases x idp
+
+\instance InvSign : Involutive Sign
+  | invert => \case \elim __ \with {
+    | +1 => ~1
+    | ~1 => +1
+  }
+  | invert-inv x => cases x idp
+
+\func SignAction (I : Involutive) : GroupAction I \cowith
+  | A => SignGroup
+  | |> => \case \elim __ \with {
+    | +1 => id
+    | ~1 => invert
+  }
+  | ide_|> => idp
+  | *_|> {a} {b} {_} => cases (a, b) idp \with {
+    | ~1, ~1 => inv (invert-inv _)
+  }
+
+\func toInv {J : \Set} {G : Group} (f : J -> G) : InvHom (AdjunctInvolution J InvSign) (InverseInvolution G) \cowith
+  | func (j, s) => s |> {SignAction (InverseInvolution G)} f j
+  | func-inv p => cases p \with {
+    | (_, +1) => idp
+    | (_, ~1) => inv (G.inverse-isInv _)
+  }
