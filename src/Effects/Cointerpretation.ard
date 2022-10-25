@@ -1,0 +1,13 @@
+\import Algebra.Universal.Signature
+\import Set
+
+\class Cointerpretation (T : Signature) \extends BaseSet {
+  | choose (op : T.Sigma) : E -> T op
+  | update : T.Sigma -> E -> E
+
+  \func \infixl 2 ? {X : \Set} (e : T.Sentence X) (s : E) : \Sigma X E \elim e
+    | var x => (x, s)
+    | cont op k => k (choose op s) ? update op s
+} \where \open Signature
+
+\meta Cointerprets T => Cointerpretation { | T => T }

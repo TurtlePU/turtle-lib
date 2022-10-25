@@ -1,0 +1,9 @@
+\import Algebra.Universal.Theory
+\import Effects.Cointerpretation
+
+\class Comodel \extends Cointerpretation {
+  \override T : Theory
+  | eqn-cosat {e : Eqn {T}} (s : E) : eqn-left e ? s = eqn-right e ? s
+}
+
+\meta Comodels T => Comodel { | T => T }
