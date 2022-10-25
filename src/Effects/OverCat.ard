@@ -1,0 +1,81 @@
+\import Algebra.Universal.Signature
+\import Algebra.Universal.Theory
+\import Category
+\import Category.Limit
+\import Paths
+\import Paths.Meta
+
+\class Interpretation (C : CompletePrecat) (T : Signature) (\classifying M : C) {
+  | interp (op : T.Sigma) : Hom (C.product (\lam (_ : T op) => M)) M
+
+  \func run {X : \Set} (e : T.Sentence X) : Hom (C.product (\lam (_ : X) => M)) M \elim e
+    | var x => proj x
+    | cont op k => interp op ∘ tupleMap {C.product (\lam (_ : T op) => M)} (\lam j => run (k j))
+} \where \open Signature
+
+\class Model \extends Interpretation {
+  \override T : Theory
+  | eqn-sat (e : Eqn {T}) : run (eqn-left e) = run (eqn-right e)
+}
+
+\record T-hom (C : CompletePrecat) (T : Theory) (L M : Model C T) {
+  | \coerce func : Hom L M
+  | func-comm (op : T.Sigma) : func ∘ L.interp op = M.interp op ∘ componentwise (\lam _ => func)
+}
+
+\instance ModPrecat (C : CompletePrecat) (T : Theory) : Precat (Model C T)
+  | Hom => T-hom C T
+  | id _ => \new T-hom {
+    | func => id _
+    | func-comm _ => id-left *> inv (pmap (_ ∘) (componentwise.cid=id (\lam _ => _)) *> id-right)
+  }
+  | o g f => \new T-hom {
+    | func => func {g} ∘ f
+    | func-comm _ =>
+      o-assoc *>
+      pmap (_ ∘) (func-comm _) *>
+      inv o-assoc *>
+      pmap (`∘ _) (func-comm _) *>
+      o-assoc *>
+      pmap (_ ∘) (inv (componentwise.ccomp=comp (\lam _ => _) (\lam _ => _) (\lam _ => _) (\lam _ => _) (\lam _ => _)))
+  }
+  | id-left => ext id-left
+  | id-right => ext id-right
+  | o-assoc => ext o-assoc
+
+\instance ModCompletePrecat (C : CompletePrecat) (T : Theory) : CompletePrecat (Model C T)
+  | Precat => ModPrecat C T
+  | limit => limits<=pr+eq (\lam _ M => ProductProduct M) {?}
+
+\func ProductProduct {C : CompletePrecat} {T : Theory} {J : \Type} (M : J -> Model C T) : Product {J} {ModPrecat C T} M \cowith
+  | apex => ProductModel M
+  | proj j => \new T-hom {
+    | func => proj {{?}} j
+    | func-comm _ => {?}
+  }
+  | tupleMap H => {?}
+  | tupleBeta => {?}
+  | tupleEq p => {?}
+
+\func ProductInterp {C : CompletePrecat} {S : Signature} {J : \Type} (I : J -> Interpretation C S)
+  : Interpretation C S (C.product (I __)) \cowith
+  | interp op => tupleMap {C.product (I __)} (\lam _ => interp op ∘ componentwise (\lam _ => proj {C.product (I __)} _))
+
+\func ProductModel {C : CompletePrecat} {T : Theory} {J : \Type} (M : J -> Model C T)
+  : Model C T (C.product (M __)) \cowith
+  | eqn-sat e => {?}
+  | interp => {?}
+  \where \open Signature
+
+\func componentwise {C : CompletePrecat} {J : \Type} {p q : J -> C} (f : \Pi (j : J) -> Hom (p j) (q j))
+  : Hom (C.product p) (C.product q) => tupleMap (\lam j => f j ∘ proj {C.product p} j)
+  \where {
+    \func cid=id {C : CompletePrecat} {J : \Type} (p : J -> C) : componentwise (\lam j => id (p j)) = id (C.product p) =>
+      tupleEq (\lam _ => tupleBeta *> id-left *> inv id-right)
+
+    \func ccomp=comp {C : CompletePrecat} {J : \Type} (p q r : J -> C)
+                     (g : \Pi (j : J) -> Hom (q j) (r j)) (f : \Pi (j : J) -> Hom (p j) (q j))
+      : componentwise (\lam j => g j ∘ f j) = componentwise g ∘ componentwise f =>
+      tupleEq (\lam j => tupleBeta *>
+      o-assoc *> inv (pmap (`∘ _) tupleBeta *> o-assoc *> pmap (_ ∘) (tupleBeta {C.product _} {_} {_} {j})) *> o-assoc)
+  }
