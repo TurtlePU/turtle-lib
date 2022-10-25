@@ -1,0 +1,17 @@
+\import Algebra.Group.Action
+\import Algebra.Involutive
+\import Algebra.Monoid.Action
+\import Paths.Meta
+
+\instance AdjunctInvolution (X : \Set) (I : Involutive) : Involutive (\Sigma X I)
+  | invert (x, i) => (x, invert i)
+  | invert-inv _ => rewrite invert-inv idp
+
+\instance AdjunctMonoidAction (E : MonoidAction) (X : \Set) : MonoidAction (\Sigma E X)
+  | A => E.A
+  | |> m (n, x) => (m |> n, x)
+  | ide_|> => rewrite ide_|> idp
+  | *_|> => rewrite *_|> idp
+
+\instance AdjunctGroupAction (E : GroupAction) (X : \Set) : GroupAction (\Sigma E X)
+  | MonoidAction => AdjunctMonoidAction E X
