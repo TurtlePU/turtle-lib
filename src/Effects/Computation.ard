@@ -1,0 +1,9 @@
+\import Algebra.Universal.Interpretation
+\import Algebra.Universal.Model
+\import Algebra.Universal.Theory
+\import Effects.Cointerpretation
+\import Effects.Comodel
+
+\truncated \data \infix 2 [x] {T : Theory} (M : Models T) (W : Comodels T) : \Set
+  | \infix 3 @/ M W
+  | step (op : T.Sigma) (k : T op -> M) (w : W) : interp op k @/ w = k (choose op w) @/ update op w
