@@ -1,0 +1,25 @@
+\import Algebra.Universal.Interpretation
+\import Algebra.Universal.Model
+\import Algebra.Universal.Signature
+\import Algebra.Universal.Theory
+\import Paths
+\import Paths.Meta
+
+\func Formula (T : Theory) (X : \Set) => \Pi {M : Models T} -> (X -> M) -> M
+
+\instance FormulaInterp (T : Theory) (X : \Set) : Interpretation (Formula T X) T
+  | interp op args xs => interp op (args __ xs)
+
+\instance InitialModel (T : Theory) (X : \Set) : Model (Formula T X) T
+  | Interpretation => FormulaInterp T X
+  | eqn-sat _ _ => ext (\lam _ => rewrite (!-eval, !-eval) (eqn-sat _ _))
+  \where {
+    \open Signature
+    \open Interpretation
+
+    \lemma !-eval {T : Theory} {C X : \Set} {M : Models T}
+                  {phi : T.Sentence C} {ctx : C -> Formula T X} {xs : X -> M}
+      : (phi ! {FormulaInterp T X} ctx) xs = phi ! (\lam c => ctx c xs) \elim phi
+      | var _ => idp
+      | cont op k => pmap (interp _) (ext (\lam _ => !-eval))
+  }
