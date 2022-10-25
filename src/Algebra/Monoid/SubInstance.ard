@@ -12,7 +12,7 @@
   | *-assoc => ext *-assoc
 
 \func SubMonoidAction {M : Monoid} (S : SubMonoid {M}) : MonoidAction M \cowith
-  | A => SubMonoidInstance S
-  | |> (x, _) y => x * y
-  | ide_|> => ide-left
-  | *_|> => *-assoc
+  | C => SubMonoidInstance S
+  | c* (x, _) y => x * y
+  | ide-c* => ide-left
+  | *-c* => *-assoc

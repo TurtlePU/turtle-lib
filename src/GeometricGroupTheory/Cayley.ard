@@ -17,5 +17,5 @@
   | from => __.1
   | to (g, a) => g * f a
   | from-inv => idp
-  | invert_|> => rewrite *-assoc idp
-  | from_|> => idp
+  | invert-c* => rewrite *-assoc idp
+  | from-c* => idp

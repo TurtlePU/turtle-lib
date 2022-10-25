@@ -21,10 +21,10 @@
 }
 
 \class ActionOnGraph \extends GroupAction, Graph {
-  \override V : GroupAction { | A => A }
-  | invert_|> {g : A} {e : E} : invert (g |> e) = g |> invert e
-  | from_|> {g : A} {e : E} : from (g |> e) = g |> {V} from e
+  \override V : GroupAction { | C => C }
+  | invert-c* {g : C} {e : E} : invert (g c* e) = g c* invert e
+  | from-c* {g : C} {e : E} : from (g c* e) = g c* {V} from e
 
-  \lemma to_|> {g : A} {e : E} : to (g |> e) = g |> {V} to e =>
-    rewrite (inv from-inv, invert_|>, from_|>, from-inv) idp
+  \lemma to-c* {g : C} {e : E} : to (g c* e) = g c* {V} to e =>
+    rewrite (inv from-inv, invert-c*, from-c*, from-inv) idp
 }

@@ -8,10 +8,10 @@
   | invert-inv _ => rewrite invert-inv idp
 
 \instance AdjunctMonoidAction (E : MonoidAction) (X : \Set) : MonoidAction (\Sigma E X)
-  | A => E.A
-  | |> m (n, x) => (m |> n, x)
-  | ide_|> => rewrite ide_|> idp
-  | *_|> => rewrite *_|> idp
+  | C => E.C
+  | c* m (n, x) => (m c* n, x)
+  | ide-c* => rewrite ide-c* idp
+  | *-c* => rewrite *-c* idp
 
 \instance AdjunctGroupAction (E : GroupAction) (X : \Set) : GroupAction (\Sigma E X)
   | MonoidAction => AdjunctMonoidAction E X

@@ -34,18 +34,18 @@
   | invert-inv x => cases x idp
 
 \func SignAction (I : Involutive) : GroupAction I \cowith
-  | A => SignGroup
-  | |> => \case \elim __ \with {
+  | C => SignGroup
+  | c* => \case \elim __ \with {
     | +1 => id
     | ~1 => invert
   }
-  | ide_|> => idp
-  | *_|> {a} {b} {_} => cases (a, b) idp \with {
+  | ide-c* => idp
+  | *-c* {a} {b} {_} => cases (a, b) idp \with {
     | ~1, ~1 => inv (invert-inv _)
   }
 
 \func toInv {J : \Set} {G : Group} (f : J -> G) : InvHom (AdjunctInvolution J InvSign) (InverseInvolution G) \cowith
-  | func (j, s) => s |> {SignAction (InverseInvolution G)} f j
+  | func (j, s) => s c* {SignAction (InverseInvolution G)} f j
   | func-inv p => cases p \with {
     | (_, +1) => idp
     | (_, ~1) => inv (G.inverse-isInv _)

@@ -33,16 +33,16 @@
 
 \func NormalInvClosure {G : Group} (f : InvSub G) : NormalSubGroup {G} \cowith
   | SubGroup => SubGroupInvClosure (conj f)
-  | sub-conj {x} {g} (inP (xs, idp)) => inP (map (g ||>) xs, foldMap.-map *> conj-lem _ _ _)
+  | sub-conj {x} {g} (inP (xs, idp)) => inP (map (g |>) xs, foldMap.-map *> conj-lem _ _ _)
   \where {
     \func conj {G : Group} (f : InvSub G) : InvHom (AdjunctInvolution G f.Dom) (InverseInvolution G) \cowith
       | func (g, j) => g * f j * inverse g
       | func-inv _ => rewrite (G.inverse_*, G.inverse_*, G.inverse-isInv, f.func-inv) *-assoc
 
-    \func \infixr 6 ||> {J : \Set} {G : Group} (g : G) => (g, ()) |> {AdjunctGroupAction (Self G) J}
+    \func \infixr 6 |> {J : \Set} {G : Group} (g : G) => (g, ()) c* {AdjunctGroupAction (Self G) J}
 
     \lemma conj-lem {G : Group} (f : InvSub G) (g : G) (xs : List (\Sigma G f.Dom))
-      : foldMap (conj f o (||>) g) xs = g * foldMap (conj f) xs * inverse g \elim xs
+      : foldMap (conj f o (g |>)) xs = g * foldMap (conj f) xs * inverse g \elim xs
       | nil => rewriteEq (inverse-right {G} {g}) idp
       | :: _ xs => rewriteEq (conj-lem f g xs, G.inverse_*, G.inverse-left {g}) equation
   }

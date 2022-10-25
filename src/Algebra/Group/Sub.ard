@@ -22,7 +22,7 @@
   | inverse-right => ext inverse-right
 
 \func SubGroupAction {G : Group} (S : SubGroup {G}) : GroupAction G \cowith
-  | A => SubGroupInstance S
+  | C => SubGroupInstance S
   | MonoidAction => SubMonoidAction S
 
 \func Class {G : Group} (S : SubGroup {G}) (x y : G) => GroupAction.Orbit {SubGroupAction S} x y

@@ -8,20 +8,20 @@
 \import Relation.Equivalence
 
 \class GroupAction \extends MonoidAction {
-  \override A : Group
+  \override C : Group
 
-  \lemma rinv_|> {a : A} {x : E} : a |> inverse a |> x = x => rewrite (inv *_|>, inverse-right) ide_|>
+  \lemma rinv-c* {a : C} {x : E} : a c* inverse a c* x = x => rewrite (inv *-c*, inverse-right) ide-c*
 
-  \lemma linv_|> {a : A} {x : E} : inverse a |> a |> x = x => rewrite (inv *_|>, inverse-left) ide_|>
+  \lemma linv-c* {a : C} {x : E} : inverse a c* a c* x = x => rewrite (inv *-c*, inverse-left) ide-c*
 
-  \lemma inv_*_|> {a b : A} {x : E} : inverse (a * b) |> x = inverse b |> inverse a |> x =>
-    rewrite (Group.inverse_* _ _) *_|>
+  \lemma inv-*-c* {a b : C} {x : E} : inverse (a * b) c* x = inverse b c* inverse a c* x =>
+    rewrite (Group.inverse_* _ _) *-c*
 
-  \func Orbit (x y : E) => \Sigma (a : A) (a |> x = y)
+  \func Orbit (x y : E) => \Sigma (a : C) (a c* x = y)
 
   \func SameOrbit : Equivalence E \cowith
     | ~ x y => TruncP (Orbit x y)
-    | ~-reflexive => inP (ide, ide_|>)
-    | ~-symmetric (inP (g, orbit)) => inP (inverse g, rewrite (inv orbit) GroupAction.linv_|>)
-    | ~-transitive (inP (g, orbit)) (inP (h, orbit')) => inP (h * g, rewrite (*_|>, orbit) orbit')
+    | ~-reflexive => inP (ide, ide-c*)
+    | ~-symmetric (inP (g, orbit)) => inP (inverse g, rewrite (inv orbit) GroupAction.linv-c*)
+    | ~-transitive (inP (g, orbit)) (inP (h, orbit')) => inP (h * g, rewrite (*-c*, orbit) orbit')
 }

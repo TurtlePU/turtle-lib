@@ -3,7 +3,7 @@
 \import Set
 
 \class MonoidAction \extends BaseSet
-  | A : Monoid
-  | \infixr 6 |> : A -> E -> E
-  | ide_|> {x : E} : ide |> x = x
-  | *_|> {a b : A} {x : E} : a * b |> x = a |> b |> x
+  | C : Monoid
+  | \infixr 6 c* : C -> E -> E
+  | ide-c* {x : E} : ide c* x = x
+  | *-c* {a b : C} {x : E} : a * b c* x = a c* b c* x
