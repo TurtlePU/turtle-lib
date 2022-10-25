@@ -1,0 +1,9 @@
+\import Algebra.Monoid
+\import Algebra.Pointed
+\import Set
+
+\class MonoidAction \extends BaseSet
+  | A : Monoid
+  | \infixr 6 |> : A -> E -> E
+  | ide_|> {x : E} : ide |> x = x
+  | *_|> {a b : A} {x : E} : a * b |> x = a |> b |> x

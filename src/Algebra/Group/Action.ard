@@ -1,0 +1,27 @@
+\import Algebra.Group
+\import Algebra.Monoid
+\import Algebra.Monoid.Action
+\import Algebra.Pointed
+\import Logic
+\import Paths (inv)
+\import Paths.Meta
+\import Relation.Equivalence
+
+\class GroupAction \extends MonoidAction {
+  \override A : Group
+
+  \lemma rinv_|> {a : A} {x : E} : a |> inverse a |> x = x => rewrite (inv *_|>, inverse-right) ide_|>
+
+  \lemma linv_|> {a : A} {x : E} : inverse a |> a |> x = x => rewrite (inv *_|>, inverse-left) ide_|>
+
+  \lemma inv_*_|> {a b : A} {x : E} : inverse (a * b) |> x = inverse b |> inverse a |> x =>
+    rewrite (Group.inverse_* _ _) *_|>
+
+  \func Orbit (x y : E) => \Sigma (a : A) (a |> x = y)
+
+  \func SameOrbit : Equivalence E \cowith
+    | ~ x y => TruncP (Orbit x y)
+    | ~-reflexive => inP (ide, ide_|>)
+    | ~-symmetric (inP (g, orbit)) => inP (inverse g, rewrite (inv orbit) GroupAction.linv_|>)
+    | ~-transitive (inP (g, orbit)) (inP (h, orbit')) => inP (h * g, rewrite (*_|>, orbit) orbit')
+}
