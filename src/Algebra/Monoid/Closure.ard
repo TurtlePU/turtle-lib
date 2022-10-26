@@ -1,7 +1,7 @@
 \import Algebra.Monoid
 \import Algebra.Monoid.Sub
 \import Data.List
-\import Data.ListUtils
+\import Data.List.Utils
 \import Logic
 \import Logic.Meta
 

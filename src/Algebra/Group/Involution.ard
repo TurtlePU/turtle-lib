@@ -9,7 +9,7 @@
 \import Algebra.Monoid.Closure
 \import Data.Adjunct
 \import Data.List
-\import Data.ListUtils
+\import Data.List.Utils
 \import Function
 \import Logic
 \import Paths
