@@ -1,0 +1,99 @@
+\import Algebra.Action
+\import Algebra.Domain
+\import Algebra.Field
+\import Algebra.Group (AddGroup)
+\import Algebra.Group.Omega
+\import Algebra.Meta
+\import Algebra.Monoid
+\import Algebra.Ring.Omega
+\import Algebra.Semiring
+\import Data.Fraction
+\import Logic
+\import Meta
+\import Paths
+\import Paths.Meta
+\import Relation.Equivalence
+\import Set
+\open AddGroup (#0)
+
+\func nonZeroAction (D : IntegralDomain) : RingedAction D \cowith
+  | Ring => D
+  | C => D.nonZeroMonoid
+  | c* (c, _) x => c * x
+  | c*-*-left => *-assoc
+  | c*-*-right => equation
+  | ide-c* => ide-left
+  | *-c* => *-assoc
+
+\lemma apartNonZero {D : IntegralDomain} {x : D} (x#0 : x `#0) : x /= 0 =>
+  \lam x=0 => D.#0-zro (rewriteI x=0 x#0)
+
+\func Rational (D : IntegralDomain) => Fraction (nonZeroAction D)
+  \where {
+    \instance Proportion (D : IntegralDomain) : Equivalence (\Sigma D D.nonZeroMonoid)
+      | ~ (p, (q, _)) (p', (q', _)) => q' * p = q * p'
+      | ~-reflexive => idp
+      | ~-symmetric => inv
+      | ~-transitive {x} {(_, (q, q#0))} {z} x~y y~z => run {
+        D.nonZero-cancel-left (apartNonZero q#0),
+        equation *> pmap (z.2.1 *) x~y *> __,
+        equation *> pmap (x.2.1 *) y~z *> equation
+      }
+
+    \func toQuotient {D : IntegralDomain} (r : Rational D) : Quotient (~ {Proportion D}) \elim r
+      | / p (q, q#0) => in~ (p, (q, q#0))
+      | reduce => path (~-equiv _ _ equation)
+
+    \lemma reduce' {D : IntegralDomain} (r : D.nonZeroMonoid) {p : D} {q : D.nonZeroMonoid}
+      : (r c* {nonZeroAction D} p) / (r * {D.nonZeroMonoid} q) = {Rational D} p / q => path reduce
+
+    \func fromQuotient {D : IntegralDomain} (q : Quotient (~ {Proportion D})) : Rational D \elim q
+      | in~ (p, (q, q#0)) => p / (q, q#0)
+      | ~-equiv x y r =>
+        inv (reduce' y.2) *>
+        pmap (__ / {D.nonZeroMonoid} {nonZeroAction D} _) r *>
+        pmap2 (/) equation *-comm *> reduce' x.2
+
+    \lemma eq {D : IntegralDomain} {p p' : D} {q q' : D.nonZeroMonoid} (prf : (p, q) ~ (p', q'))
+      : p / q = {Rational D} p' / q' => pmap fromQuotient (path (~-equiv (p, q) (p', q') prf))
+
+    \lemma prop {D : IntegralDomain} {p p' : D} {q q' : D.nonZeroMonoid} (prf : p / q = {Rational D} p' / q')
+      : (p, q) ~ {Proportion D} (p', q') =>
+      Quotient.equalityEquiv (Proportion D) {(p, q)} {(p', q')} (pmap toQuotient prf)
+  }
+
+\instance RationalField (D : IntegralDomain.Dec) : DiscreteField (Rational D)
+  | Ring => FractionRing _
+  | zro/=ide z=i => run {
+    D.#0-zro, transportInv #0 __ D.zro#ide,
+    inv zro_*-right *> Rational.prop z=i <* ide-left
+  }
+  | *-comm {/ _ _} {/ _ _} => pmap2 (/) *-comm *-comm
+  | decideEq (/ p q) (/ p' q') => \case D.decideEq (q' c* {nonZeroAction D} p) (q c* {nonZeroAction D} p') \with {
+    | yes x~y => yes (Rational.eq x~y)
+    | no x/~y => no (\lam eq => x/~y (Rational.prop eq))
+  }
+  | finv => \case \elim __ \with {
+    | / p (q, _) => \case D.decideEq p 0 \with {
+      | yes _ => 0
+      | no p/=0 => q / (p, D.nonEqualApart p/=0)
+    }
+    | reduce {_} {_} {r} => mcases \with {
+      | yes _, yes _ => idp
+      | yes rp=0, no p/=0 => run {
+        absurd, p/=0,
+        D.nonZero-cancel-left (apartNonZero r.2),
+        rp=0 *> inv zro_*-right
+      }
+      | no rp/=0, yes p=0 => absurd (rp/=0 (rewrite p=0 OmegaGroup.c*-zro))
+      | no _, no _ => path reduce
+    }
+  }
+  | finv_zro => mcases \with {
+    | yes _ => idp
+    | no O/=O => absurd (O/=O idp)
+  }
+  | finv_inv {/ p _} x/=0 => cases (D.decideEq p 0) \with {
+    | yes p=0 => run { absurd, x/=0, Rational.eq, rewrite p=0 equation }
+    | no _ => Rational.eq equation
+  }
