@@ -1,0 +1,10 @@
+\import Category.Functor
+\import Set.Category
+
+\data Pair (A B : \Set)
+  | \infix 6 :' A B
+
+\instance PairFunctor (A : \Set) : Functor SetCat SetCat (Pair A)
+  | Func => {?}
+  | Func-id => {?}
+  | Func-o => {?}

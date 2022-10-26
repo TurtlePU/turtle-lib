@@ -1,13 +1,7 @@
-\import Category.Functor
 \import Category.Monad
 \import Data.Or
 \import Multiplicity.Multiplicity
 \import Set.Category
-
-\instance OrFunctor {A : \Set} : Functor SetCat SetCat (Or A)
-  | Func => {?}
-  | Func-id => {?}
-  | Func-o => {?}
 
 \data Term (U : \Set)
   | unit

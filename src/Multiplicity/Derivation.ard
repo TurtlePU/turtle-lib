@@ -1,5 +1,6 @@
 \import Data.Bool
 \import Data.Maybe
+\import Data.Pair
 \import Function
 \import Multiplicity.Context
 \import Multiplicity.Multiplicity

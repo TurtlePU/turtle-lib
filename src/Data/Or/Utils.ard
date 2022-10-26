@@ -1,0 +1,8 @@
+\import Category.Functor
+\import Data.Or
+\import Set.Category
+
+\instance OrFunctor (A : \Set) : Functor SetCat SetCat (Or A)
+  | Func => {?}
+  | Func-id => {?}
+  | Func-o => {?}

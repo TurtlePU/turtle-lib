@@ -1,16 +1,9 @@
 \import Category.Functor
 \import Data.Bool
+\import Data.Pair
 \import Multiplicity.Multiplicity
 \import Order.Lattice
 \import Set.Category
-
-\data Pair (A B : \Set)
-  | \infix 6 :' A B
-
-\instance PairFunctor {A : \Set} : Functor SetCat SetCat (Pair A)
-  | Func => {?}
-  | Func-id => {?}
-  | Func-o => {?}
 
 \data Type (V : \Set)
   | Unit V

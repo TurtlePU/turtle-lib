@@ -3,6 +3,7 @@
 \import Data.Maybe
 \import Data.Maybe.Utils
 \import Data.Or
+\import Data.Pair
 \import Function
 \import Multiplicity.Multiplicity
 \import Multiplicity.Type
