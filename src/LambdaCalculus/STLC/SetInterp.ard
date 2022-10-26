@@ -1,0 +1,18 @@
+\import LambdaCalculus.STLC.Context
+\import Data.Maybe
+\import LambdaCalculus.STLC
+\import LambdaCalculus.Term
+
+\func D {T : \Set} (f : T -> \Set) (t : Type T) : \Set \elim t
+  | tyvar t => f t
+  | ~> t1 t2 => D f t1 -> D f t2
+
+\func interp {T X : \Set} {G : X -> Type T} {tm : Term X} {ty : Type T}
+             (f : T -> \Set) (g : \Pi (x : X) -> D f (G x)) (G|-tm:ty : G |- tm :: ty)
+  : D f ty \elim tm, ty, G|-tm:ty
+  | var x, _, tvar idp => g x
+  | $ t t', ty, tapp a G|-t:a->ty G|-t':a => interp f g G|-t:a->ty (interp f g G|-t':a)
+  | abs t, ~> a b, tabs a+:G|-t:b => \lam d => interp f (\case \elim __ \with {
+    | nothing => d
+    | just x => g x
+  }) a+:G|-t:b

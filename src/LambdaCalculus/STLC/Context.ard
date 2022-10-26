@@ -1,0 +1,10 @@
+\import Data.Maybe
+\import LambdaCalculus.Term
+
+\func \infix 3 :: {T X : \Set} (tm : Term X) (ty : T) => (tm, ty)
+
+\func \infix 3 +: {T X : \Set} (t : T) (G : X -> T) : Maybe X -> T =>
+  \case \elim __ \with {
+    | nothing => t
+    | just a => G a
+  }

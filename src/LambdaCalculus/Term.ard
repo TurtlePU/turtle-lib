@@ -1,0 +1,16 @@
+\import Category.Monad
+\import Data.Maybe
+\import Set.Category
+
+\data Term (X : \Set)
+  | var X
+  | \infixl 4 $ (Term X) (Term X)
+  | abs (Term (Maybe X))
+
+\instance TermMonad : Monad SetCat Term
+  | Pure => {?}
+  | Bind => {?}
+  | Func-Bind => {?}
+  | left-id => {?}
+  | right-id => {?}
+  | assoc => {?}

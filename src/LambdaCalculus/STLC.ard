@@ -1,0 +1,11 @@
+\import LambdaCalculus.STLC.Context
+\import LambdaCalculus.Term
+
+\data Type (T : \Set)
+  | tyvar T
+  | \infixr 4 ~> (Type T) (Type T)
+
+\data \infix 2 |- {T X : \Set} (G : X -> Type T) (p : \Sigma (Term X) (Type T)) \elim p
+  | (var x, ty) => tvar (G x = ty)
+  | ($ t t', b) => tapp (a : Type T) (G |- t :: a ~> b) (G |- t' :: a)
+  | (abs t, ~> a b) => tabs (a +: G |- t :: b)
