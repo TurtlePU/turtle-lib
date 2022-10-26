@@ -1,5 +1,5 @@
 \import Data.Bool
-\import Data.BoolUtils
+\import Data.Bool.Utils
 \import Data.Or
 \import Equiv
 \import Logic
