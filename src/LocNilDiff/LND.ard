@@ -1,0 +1,6 @@
+\import Calculus.Derivation
+\import Function
+
+\record LocallyNilpotentDerivation \extends Derivation
+  | fdegree : A -> Nat
+  | fdegree-sat {f : A} : iterr func (fdegree f) f = 0
