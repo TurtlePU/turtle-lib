@@ -1,0 +1,46 @@
+\import Algebra.Algebra
+\import Algebra.Algebra.Polynomial
+\import Algebra.Group
+\import Algebra.Meta
+\import Algebra.Module
+\import Algebra.Monoid
+\import Algebra.Monoid.Action
+\import Algebra.Ring
+\import Algebra.Semiring
+\import Calculus.Derivation
+\import Meta
+\import Paths
+\import Paths.Meta
+
+\instance NoncommutativeDualAlgebra {R : Ring} (A : Algebra.Over R) : Algebra (\Sigma A A)
+  | C => R
+  | c* c (f, f') => (c c* f, c c* f')
+  | ide-c* => rewrite (ide-c*, ide-c*) idp
+  | *-c* => rewrite (*-c*, *-c*) idp
+  | zro => (0, 0)
+  | + (f, f') (g, g') => (f + g, f' + g')
+  | zro-left => rewrite (zro-left, zro-left) idp
+  | +-assoc => rewrite (+-assoc, +-assoc) idp
+  | negative (f, f') => (negative f, negative f')
+  | negative-left => rewrite (negative-left, negative-left) idp
+  | +-comm => rewrite +-comm (pmap {A} (\lam f' => (_ + _, f')) +-comm)
+  | c*-ldistr => rewrite (c*-ldistr, c*-ldistr) idp
+  | ide => (1, 0)
+  | * (f, f') (g, g') => (f * g, f * g' + f' * g)
+  | ide-left => rewrite (ide-left, ide-left, zro_*-left, zro-right) idp
+  | ide-right => rewrite (ide-right, ide-right, zro_*-right, zro-left) idp
+  | *-assoc => pmap2 (\lam f f' => (f, f')) *-assoc (unfold equation)
+  | ldistr => rewrite (ldistr, ldistr, ldistr) (pmap (\lam f' => (_ + _, f')) equation)
+  | rdistr => rewrite (rdistr, rdistr, rdistr) (pmap (\lam f' => (_ + _, f')) equation)
+  | c*-*-left => rewrite (c*-*-left, c*-*-left, c*-*-left, c*-rdistr) idp
+  | c*-*-right => rewrite (c*-*-right, c*-*-right, c*-*-right, c*-rdistr) idp
+
+\func dx {R : Ring} : Derivation (PolynomialAlgebra R) \cowith
+  | func (p : Polynomial R) : Polynomial R => \lam {A} x => (p {NoncommutativeDualAlgebra A} (x, 1)).2
+  | func-+ => idp
+  | func-c* => idp
+  | leibnitz {p} {q} => ext (\lam {A} x => unfold (rewriteI (dual-value p x 1, dual-value q x 1) idp))
+  \where {
+    \lemma dual-value {R : Ring} {A : Algebra.Over R} (p : Polynomial R) (x y : A)
+      : (p {NoncommutativeDualAlgebra A} (x, y)).1 = p x => {?}
+  }

@@ -1,0 +1,47 @@
+\import Algebra.Algebra
+\import Algebra.Group
+\import Algebra.Meta
+\import Algebra.Module
+\import Algebra.Monoid
+\import Algebra.Monoid.Action
+\import Algebra.Ring
+\import Algebra.Semiring
+\import Meta
+\import Paths
+\import Paths.Meta
+
+\instance DualAlgebra {R : CRing} (A : Module.Over R) : Algebra (\Sigma R A)
+  | C => R
+  | c* q (r, a) => (q * r, q c* a)
+  | ide-c* => rewrite (ide-left, ide-c*) idp
+  | *-c* => rewrite (*-assoc, *-c*) idp
+  | zro => (0, 0)
+  | + (q, a) (r, b) => (q + r, a + b)
+  | zro-left => rewrite (zro-left, zro-left) idp
+  | zro-right => rewrite (zro-right, zro-right) idp
+  | +-assoc => rewrite (+-assoc, +-assoc) idp
+  | negative (r, a) => (negative r, negative a)
+  | negative-left => rewrite (negative-left, negative-left) idp
+  | +-comm => rewrite (+-comm {R}, +-comm {A}) idp
+  | c*-ldistr => rewrite (rdistr, c*-ldistr) idp
+  | ide => (1, 0)
+  | * (q, a) (r, b) => (q * r, r c* a + q c* b)
+  | ide-left => rewrite (ide-left, A.c*-zro, zro-left, ide-c*) idp
+  | ide-right => rewrite (ide-right, A.c*-zro, zro-right, ide-c*) idp
+  | *-assoc {x} {y} {z} => rewrite (*-assoc, c*-rdistr, c*-rdistr, *-c*, *-c*-flip A, inv +-assoc)
+      (pmap {A} (\lam w => (x.1 * (y.1 * z.1), _ + w + _)) c*-comm)
+  | ldistr => rewrite (ldistr, c*-ldistr, c*-rdistr, distr-finish) idp
+  | rdistr => rewrite (rdistr, c*-ldistr, c*-rdistr, distr-finish) idp
+  | c*-*-left => rewrite (*-assoc, c*-comm {R} {A}, *-c*, c*-rdistr) idp
+  | c*-*-right => run {
+    pmap2 (\lam r a => (r, a)) equation,
+    unfold,
+    rewrite (c*-comm {R} {A}, *-c*),
+    inv c*-rdistr
+  }
+  \where {
+    \lemma *-c*-flip {R : CRing} (A : Module.Over R) {q r : R} {a : A} : (q * r) c* a = r c* q c* a =>
+      pmap (__ c* _) *-comm *> *-c*
+
+    \lemma distr-finish {A : AbMonoid} {a b c d : A} : a + b + (c + d) = a + c + (b + d) => equation
+  }
