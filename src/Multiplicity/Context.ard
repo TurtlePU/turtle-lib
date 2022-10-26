@@ -1,0 +1,32 @@
+\import Category.Functor
+\import Data.Bool
+\import Data.Maybe
+\import Data.Maybe.Utils
+\import Data.Or
+\import Function
+\import Multiplicity.Multiplicity
+\import Multiplicity.Type
+\import Order.Lattice
+
+\func \infix 3 [+] {U V : \Set} (c c' : U -> Maybe V) : U -> Maybe (Maybe V) => \lam u => \case c u, c' u \with {
+  | nothing, nothing => just nothing
+  | nothing, just a => just (just a)
+  | just a , nothing => just (just a)
+  | just _ , just _ => nothing
+}
+
+\func TermContext (U V : \Set) => U -> Maybe (Type V)
+
+\func Context (U V : \Set) => \Sigma (V -> Multiplicity) (TermContext U V)
+
+\func \infix 5 ::tm {T U V : \Set} (t : Type V) (g : Context U V) : Context (T `Or` U) V =>
+  (g.1, \case \elim __ \with {
+    | inl _ => just t
+    | inr x => g.2 x
+  })
+
+\func \infix 5 ::ty {U V : \Set} (m : Multiplicity) (g : Context U V) : Context U (Pair Bool V) =>
+  (\case \elim __ \with {
+    | :' false b => g.1 b
+    | :' true b => m ∨ g.1 b
+  }, Func {MaybeMonad} (Func {TypeFunctor} (:' false)) o g.2)

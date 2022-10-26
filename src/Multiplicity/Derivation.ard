@@ -1,0 +1,21 @@
+\import Data.Bool
+\import Data.Maybe
+\import Function
+\import Multiplicity.Context
+\import Multiplicity.Multiplicity
+\import Multiplicity.Term
+\import Multiplicity.Type
+\import Order.PartialOrder
+
+\func isSup {U V : \Set} (v : V) (g : Context U V) : \Prop => \Sigma
+
+\func admits {V : \Set} (v : V) (m : Multiplicity) : \Prop => \Sigma
+
+\truncated \data \infix 2 |- {U V : \Set} (g : Context U V) (p : Pair (Term U) (Type V)) : \Prop \elim g, p
+  | _, :' unit (Unit _) => TUnit
+  | (_, g), :' (var u) t => TVar (g u = just t)
+  | (gt, g), :' (app f x) t => TApp {gf gx : TermContext U V} {v : V} {tx : Type V}
+                                    (gf [+] gx = just o g) ((gt, gf) |- f :' Arrow tx v t) ((gt, gx) |- x :' tx)
+  | g, :' (abs m t) (Arrow from v to) => TAbs (v `isSup` g) (g.1 (getV from) <= m) (from ::tm g |- t :' to)
+  | g, :' tm (Forall top ty v) => TGen (v `isSup` g) (top ::ty g |- tm :' ty)
+  | g, :' tm ty => TInst {top : Multiplicity} {ft : Type (Pair Bool V)} {v v' : V} (v' `admits` top)

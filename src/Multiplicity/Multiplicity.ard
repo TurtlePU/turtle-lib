@@ -1,0 +1,136 @@
+\import Data.List
+\import Data.Maybe
+\import Function
+\import Meta
+\import Order.Lattice
+\import Order.PartialOrder
+\import Paths
+\import Paths.Meta
+
+\data Multiplicity
+  | linear
+  | affine
+  | relevant
+  | regular
+  \where {
+    \use \coerce eval (m : Multiplicity) : \Set -> \Set
+      | linear => \lam T => T
+      | affine => Maybe
+      | relevant => \lam T => \Sigma T (List T)
+      | regular => List
+  }
+
+\instance MultiplicityPoset : Poset Multiplicity
+  | <= => <=
+  | <=-refl {x} => \case \elim x \with {
+    | linear => _<=linear
+    | affine => affine-refl
+    | relevant => relevant-refl
+    | regular => regular<=_
+  }
+  | <=-transitive {x} {y} {z} x<=y y<=z => \case \elim x, \elim y, \elim z, \elim x<=y, \elim y<=z \with {
+    | regular, _, _, _, _ => regular<=_
+    | _, linear, linear, _, _ => _<=linear
+    | affine, affine, linear, affine-refl, _<=linear => _<=linear
+    | affine, affine, affine, affine-refl, affine-refl => affine-refl
+    | relevant, relevant, linear, relevant-refl, _<=linear => _<=linear
+    | relevant, relevant, relevant, relevant-refl, relevant-refl => relevant-refl
+  }
+  | <=-antisymmetric {x} {y} x<=y y<=x => cases (x, y, x<=y, y<=x) idp
+  \where {
+    \truncated \data \infix 3 <= (m m' : Multiplicity) : \Prop \elim m, m'
+      | regular, _ => regular<=_
+      | _, linear => _<=linear
+      | affine, affine => affine-refl
+      | relevant, relevant => relevant-refl
+  }
+
+\instance MultiplicityLattice : Bounded.DistributiveLattice Multiplicity
+  | Poset => MultiplicityPoset
+  | meet => \case \elim __, \elim __ \with {
+    | regular, _ => regular
+    | _, regular => regular
+    | affine, relevant => regular
+    | relevant, affine => regular
+    | linear, x => x
+    | x, linear => x
+    | affine, affine => affine
+    | relevant, relevant => relevant
+  }
+  | meet-left {x} {y} => cases (x, y) <=-refl \with {
+    | linear, _ => _<=linear
+    | affine, relevant => regular<=_
+    | relevant, affine => regular<=_
+    | x, regular => cases x regular<=_
+  }
+  | meet-right {x} {y} => cases (x, y) <=-refl \with {
+    | _, linear => _<=linear
+    | affine, relevant => regular<=_
+    | relevant, affine => regular<=_
+    | regular, y => cases y regular<=_
+  }
+  | meet-univ {x} {y} {z} z<=x z<=y => cases (x, y, z, z<=x, z<=y) <=-refl \with {
+    | _, _, regular, _, _ => regular<=_
+    | linear, linear, _, _, _ => _<=linear
+  }
+  | join => \case \elim __, \elim __ \with {
+    | linear, _ => linear
+    | _, linear => linear
+    | affine, relevant => linear
+    | relevant, affine => linear
+    | x, regular => x
+    | regular, x => x
+    | affine, affine => affine
+    | relevant, relevant => relevant
+  }
+  | join-left {x} {y} => cases (x, y) <=-refl \with {
+    | affine, linear => _<=linear
+    | affine, relevant => _<=linear
+    | relevant, linear => _<=linear
+    | relevant, affine => _<=linear
+    | regular, _ => regular<=_
+  }
+  | join-right {x} {y} => cases (x, y) <=-refl \with {
+    | linear, affine => _<=linear
+    | linear, relevant => _<=linear
+    | affine, relevant => _<=linear
+    | relevant, affine => _<=linear
+    | _, regular => regular<=_
+  }
+  | join-univ {x} {y} {z} x<=z y<=z => cases (x, y, z, x<=z, y<=z) <=-refl \with {
+    | _, _, linear, _, _ => _<=linear
+    | regular, regular, _, _, _ => regular<=_
+  }
+  | top => linear
+  | top-univ => _<=linear
+  | bottom => regular
+  | bottom-univ => regular<=_
+  | ldistr>= {x} {y} {z} => cases (x, y, z) <=-refl
+  \where {
+    \open MultiplicityPoset
+  }
+
+\func <=->inj {m m' : Multiplicity} (m<=m' : m <= m')
+  : \Sigma (f : \Pi {T : \Set} -> m' T -> m T)
+           (\Pi {T : \Set} {a a' : m' T} -> f a = f a' -> a = a')
+\elim m, m', m<=m'
+  | regular, affine, _ => (\case \elim __ \with {
+    | nothing => nil
+    | just a => a :: nil
+  }, \lam {_} {a} {a'} p => cases (a, a', p) \with {
+    | nothing, nothing, _ => idp
+    | just a, just _, p => pmap (just o headDef a) p
+  })
+  | regular, relevant, _ =>
+    (\lam (x, xs) => x :: xs, \lam {_} {a} p => ext (pmap (headDef a.1) p, pmap (drop 1) p))
+  | regular, regular, _ => (\lam xs => xs, \lam p => p)
+  | regular, linear, _ => (__ :: nil, \lam {_} {a} p => pmap (headDef a) p)
+  | affine, linear, _ => (just, \lam {_} {a} p => pmap (maybe a) p)
+  | relevant, linear, _ => ((__, nil), \lam p => pmap __.1 p)
+  | linear, linear, _ => (\lam x => x, \lam p => p)
+  | affine, affine, _ => (\lam m => m, \lam p => p)
+  | relevant, relevant, _ => (\lam s => s, \lam p => p)
+
+\func maybe {A : \Set} (a : A) (m : Maybe A) : A \elim m
+  | nothing => a
+  | just a1 => a1

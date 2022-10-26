@@ -1,0 +1,34 @@
+\import Category.Functor
+\import Category.Monad
+\import Data.Or
+\import Multiplicity.Multiplicity
+\import Set.Category
+
+\instance OrFunctor {A : \Set} : Functor SetCat SetCat (Or A)
+  | Func => {?}
+  | Func-id => {?}
+  | Func-o => {?}
+
+\data Term (U : \Set)
+  | unit
+  | var U
+  | app (f x : Term U)
+  | abs (m : Multiplicity) (Term (m (\Sigma) `Or` U))
+
+\instance TermMonad : Monad SetCat Term
+  | Func => {?}
+  | Func-id => {?}
+  | Func-o => {?}
+  | Pure => {?}
+  | Bind => {?}
+  | Func-Bind => {?}
+  | left-id => {?}
+  | right-id => {?}
+  | assoc => {?}
+
+\func subst {T U : \Set} (t : Term (T `Or` U)) (u : Term U) : Term U => Bind {TermMonad} (do-subst u) t
+  \where {
+    \func do-subst {T U : \Set} (u : Term U) (o : T `Or` U) : Term U \elim o
+      | inl _ => u
+      | inr u => var u
+  }
