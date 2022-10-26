@@ -1,0 +1,65 @@
+\import Algebra.Group
+\import Algebra.Meta
+\import Algebra.Monoid
+\import Algebra.Monoid.Action
+\import Algebra.Pointed
+\import Algebra.Ring.Module
+\import LinearAlgebra.Algebra
+\import LinearAlgebra.VectorSpace.LieAlgebra
+\import LinearAlgebra.VectorSpace.LinearOperator
+\import Meta
+\import Paths
+\import Paths.Meta
+
+\record Derivation \extends LinearOperator {
+  \override V : Algebra
+  | leibnitz {a b : V} : func (a * b) = a * func b + func a * b
+
+  \lemma func-ide : func 1 = 0 =>
+    V.cancel-left (func 1) (rewriteEq (inv (leibnitz {\this} {1} {1}), ide-left {V} {1}) (inv zro-right))
+} \where {
+  \lemma liftEq {V : Algebra} {f g : Derivation V} (p : f = {LinearOperator V} g) : f = {Derivation V} g =>
+    exts (\lam v => pmap (\lam (f : LinearOperator V) => f v) p)
+}
+
+\instance DerivationAlgebra (V : Algebra) : LieAlgebra (Derivation V)
+  | C => V.C
+  | c* c f => \new Derivation {
+    | LinearOperator => c c* {LinearAlgebra V} f
+    | leibnitz => rewrite (leibnitz {f}, c*-rdistr, c*-*-right, c*-*-left) idp
+  }
+  | ide-c* => exts (\lam _ => ide-c*)
+  | *-c* => exts (\lam _ => *-c*)
+  | zro => \new Derivation {
+    | LinearOperator => zro {LinearAlgebra V}
+    | leibnitz => rewrite (V.zro_*-right, V.zro_*-left) (inv zro-left)
+  }
+  | + f g => \new Derivation {
+    | LinearOperator => f + {LinearAlgebra V} g
+    | leibnitz => rewrite (leibnitz {f}, leibnitz {g}) equation
+  }
+  | zro-left => exts (\lam _ => zro-left)
+  | zro-right => exts (\lam _ => zro-right)
+  | +-assoc => exts (\lam _ => +-assoc)
+  | negative f => \new Derivation {
+    | LinearOperator => negative {LinearAlgebra V} f
+    | leibnitz => rewrite (leibnitz {f}) equation
+  }
+  | negative-left => exts (\lam _ => negative-left)
+  | +-comm => exts (\lam _ => +-comm)
+  | c*-rdistr => exts (\lam _ => c*-rdistr)
+  | c*-ldistr => exts (\lam _ => c*-ldistr)
+  | % f g => \new Derivation {
+    | LinearOperator => f % {LinearAlgebra V} g
+    | leibnitz => run {
+      unfold,
+      rewrite (leibnitz {g}, func-+ {f}, leibnitz {f}, leibnitz {f}),
+      unfold,
+      rewrite (leibnitz {f}, func-+ {g}, leibnitz {g}, leibnitz {g}),
+      equation
+    }
+  }
+  | %-linear-left => Derivation.liftEq %-linear-left
+  | %-linear-right => Derivation.liftEq %-linear-right
+  | %-alter => Derivation.liftEq %-alter
+  | %-jacobi => Derivation.liftEq %-jacobi

@@ -1,0 +1,10 @@
+\import Algebra.Field
+\import Algebra.Monoid
+\import Algebra.Ring.Module
+\import Paths
+
+\class VectorSpace \extends Module {
+  \override C : Field
+
+  \lemma c*-comm {c d : C} {x : E} : c c* d c* x = d c* c c* x => inv *-c* *> pmap (__ c* _) (*-comm {C}) *> *-c*
+}

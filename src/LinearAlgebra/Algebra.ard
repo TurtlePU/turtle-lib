@@ -1,0 +1,24 @@
+\import Algebra.Group
+\import Algebra.Meta
+\import Algebra.Ring
+\import LinearAlgebra.VectorSpace.LieAlgebra
+\import Meta
+\import Paths
+\import Paths.Meta
+
+\class Algebra \extends LieAlgebra, Ring {
+  | c*-*-left {c : C} {x y : E} : (c c* x) * y = c c* (x * y)
+  | c*-*-right {c : C} {x y : E} : x * (c c* y) = c c* (x * y)
+
+  | % f g => f * g - g * f
+  | %-linear-left {a} {b} {x} {y} {z} =>
+    unfold (rewriteEq (rdistr, c*-*-left, c*-*-left, ldistr,
+                       c*-*-right, c*-*-right, -_+ _ (a c* (z * x)), c*-rdistr_-, c*-rdistr_-) equation)
+  | %-linear-right {a} {b} {x} {y} {z} =>
+    unfold (rewriteEq (ldistr, c*-*-right, c*-*-right, rdistr,
+                       c*-*-left, c*-*-left, -_+ _ (a c* (x * z)), c*-rdistr_-, c*-rdistr_-) equation)
+  | %-alter => negative-right
+  | %-jacobi => equation
+} \where {
+  \lemma -_+ {G : AbGroup} (x y z : G) : x - (y + z) = x - z - y => pmap (x +) (negative_+ y z) *> inv +-assoc
+}

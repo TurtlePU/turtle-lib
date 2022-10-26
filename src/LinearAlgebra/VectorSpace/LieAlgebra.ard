@@ -1,0 +1,8 @@
+\import LinearAlgebra.VectorSpace
+
+\class LieAlgebra \extends VectorSpace
+  | \infix 7 % : E -> E -> E
+  | %-linear-left {a b : C} {x y z : E} : (a c* x + b c* y) % z = a c* (x % z) + b c* (y % z)
+  | %-linear-right {a b : C} {x y z : E} : z % (a c* x + b c* y) = a c* (z % x) + b c* (z % y)
+  | %-alter {x : E} : x % x = 0
+  | %-jacobi {x y z : E} : x % (y % z) + y % (z % x) + z % (x % y) = 0

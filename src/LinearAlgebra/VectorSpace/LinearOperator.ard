@@ -1,0 +1,69 @@
+\import Algebra.Group
+\import Algebra.Monoid
+\import Algebra.Monoid.Action
+\import Algebra.Ring.Module
+\import LinearAlgebra.Algebra
+\import LinearAlgebra.VectorSpace
+\import Paths
+\import Paths.Meta
+
+\record LinearOperator (V : VectorSpace) {
+  | \coerce func : V -> V
+  | func-+ {u v : V} : func (u + v) = func u + func v
+  | func-c* {c : C} {v : V} : func (c c* v) = c c* func v
+
+  \lemma func-zro : func 0 = 0 => V.cancel-left (func 0) (rewrite (inv func-+, zro-right, zro-right) idp)
+
+  \lemma func-negative {v : V} : func (negative v) = negative (func v) =>
+    V.cancel-left (func v) (rewrite (inv func-+, negative-right, negative-right) func-zro)
+}
+
+\instance LinearAlgebra (V : VectorSpace) : Algebra (LinearOperator V)
+  | C => V.C
+  | c* c f => \new LinearOperator {
+    | func v => c c* f v
+    | func-+ => rewrite (func-+ {f}) c*-rdistr
+    | func-c* => rewrite (func-c* {f}) V.c*-comm
+  }
+  | ide-c* => exts (\lam _ => ide-c*)
+  | *-c* => exts (\lam _ => *-c*)
+  | zro => \new LinearOperator {
+    | func _ => 0
+    | func-+ => inv zro-right
+    | func-c* => inv V.c*-zro
+  }
+  | + f g => \new LinearOperator {
+    | func v => f v + g v
+    | func-+ => rewrite (func-+ {f}, func-+ {g}, +-assoc, +-assoc)
+        (pmap (_ +) (inv +-assoc *> pmap (__ + _) +-comm *> +-assoc))
+    | func-c* => rewrite (func-c* {f}, func-c* {g}) (inv c*-rdistr)
+  }
+  | zro-left => exts (\lam _ => zro-left)
+  | zro-right => exts (\lam _ => zro-right)
+  | +-assoc => exts (\lam _ => +-assoc)
+  | negative f => \new LinearOperator {
+    | func v => negative (f v)
+    | func-+ => rewrite (func-+ {f}, V.negative_+) +-comm
+    | func-c* => rewrite (func-c* {f}) (inv V.c*-negative)
+  }
+  | negative-left => exts (\lam _ => negative-left)
+  | +-comm => exts (\lam _ => +-comm)
+  | c*-rdistr => exts (\lam _ => c*-rdistr)
+  | c*-ldistr => exts (\lam _ => c*-ldistr)
+  | ide => \new LinearOperator {
+    | func v => v
+    | func-+ => idp
+    | func-c* => idp
+  }
+  | * f g => \new LinearOperator {
+    | func v => f (g v)
+    | func-+ => rewrite (func-+ {g}) func-+
+    | func-c* => rewrite (func-c* {g}) func-c*
+  }
+  | ide-left => idp
+  | ide-right => idp
+  | *-assoc => idp
+  | ldistr => exts (\lam _ => func-+)
+  | rdistr => idp
+  | c*-*-left => idp
+  | c*-*-right => exts (\lam _ => func-c*)
