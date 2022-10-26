@@ -1,8 +1,12 @@
 \import Algebra.Action
 \import Algebra.Group
 \import Algebra.Group.Omega
+\import Algebra.Meta
 \import Algebra.Monoid
 \import Algebra.Monoid.Action
+\import Algebra.Ring
+\import Algebra.Ring.Omega
+\import Algebra.Semiring
 \import Meta
 \import Paths
 \import Paths.Meta
@@ -15,8 +19,7 @@
   | zro => 0 / 1
   | + => \case \elim __, \elim __ \with {
     | / p q, / p' q' => (q' c* p + q c* p') / (q * q')
-    | / _ _, reduce =>
-      rewrite (c*-comm {M} {O}, *-c*, inv c*-rdistr, inv *-assoc, pmap (__ * _) *-comm, *-assoc) (path reduce)
+    | / _ _, reduce => rewrite (c*-comm {M} {O}, *-c*, inv c*-rdistr, pull) (path reduce)
     | reduce, / _ _ => rewrite (c*-comm, *-c*, inv c*-rdistr, *-assoc) (path reduce)
   }
   | zro-left {/ _ _} => rewrite (O.c*-zro, zro-left, ide-c*, ide-left) idp
@@ -31,11 +34,39 @@
     | reduce => rewrite (inv O.c*-negative) (path reduce)
   }
   | negative-left {/ _ _} => rewrite (inv c*-rdistr, negative-left, O.c*-zro) =0
-  | +-comm {/ p q} {/ p' q'} => rewrite (+-comm, *-comm) idp
+  | +-comm {/ _ _} {/ _ _} => rewrite (+-comm, *-comm) idp
   \where {
+    \lemma pull {M : CMonoid} {l m n : M} : l * (m * n) = m * (l * n) => equation
+
     \lemma c*-rdistr-flip {M : CMonoid} {O : OmegaAction.Of M} {l m n : M} {a b : O}
       : l c* (m c* a + n c* b) = m c* l c* a + n c* l c* b => c*-rdistr *> pmap2 (+) c*-comm c*-comm
 
     \lemma =0 {M : Monoid} {O : OmegaAction.Of M} {m : M} : 0 / m = {Fraction O} 0 / 1 =>
       inv (pmap2 (/) O.c*-zro ide-right) *> path reduce
+  }
+
+\instance FractionRing {M : CMonoid} (R : RingedAction.Of M) : Ring (Fraction R)
+  | AbGroup => FractionAbGroup R
+  | ide => 1 / 1
+  | * => \case \elim __, \elim __ \with {
+    | / p q, / p' q' => (p * p') / (q * q')
+    | / _ _, reduce => rewrite (c*-*-right, FractionAbGroup.pull) (path reduce)
+    | reduce, / _ _ => rewrite (c*-*-left, *-assoc) (path reduce)
+  }
+  | ide-left {/ _ _} => rewrite (ide-left, ide-left) idp
+  | ide-right {/ _ _} => rewrite (ide-right, ide-right) idp
+  | *-assoc {/ _ _} {/ _ _} {/ _ _} => rewrite (*-assoc, *-assoc) idp
+  | ldistr {/ _ _} {/ _ _} {/ _ _} => run {
+    rewrite (ldistr, c*-*-right, c*-*-right, FractionAbGroup.pull, *-c*, *-c*, inv c*-rdistr, *-assoc),
+    inv (path reduce)
+  }
+  | rdistr {/ _ _} {/ _ _} {/ _ _} => run {
+    rewrite (rdistr, c*-*-left, c*-*-left, rdistr-help, *-c*-flip R, *-c*-flip R, inv c*-rdistr),
+    inv (path reduce)
+  }
+  \where {
+    \lemma rdistr-help {M : CMonoid} {a b c d : M} : a * b * (c * d) = b * (a * c * d) => equation
+
+    \lemma *-c*-flip {M : CMonoid} (R : RingedAction.Of M) {a b : M} {x : R} : (a * b) c* x = b c* a c* x =>
+      pmap (__ c* _) *-comm *> *-c*
   }

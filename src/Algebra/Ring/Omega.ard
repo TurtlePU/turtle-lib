@@ -1,0 +1,15 @@
+\import Algebra.Group.Omega
+\import Algebra.Ring
+\import Paths
+
+\class OmegaRing \extends OmegaGroup, Ring
+  | c*-*-left {c : C} {x y : E} : (c c* x) * y = c c* (x * y)
+  | c*-*-right {c : C} {x y : E} : x * (c c* y) = c c* (x * y)
+  | c*-rdistr =>
+    pmap (_ c*) (inv ide-left) *>
+    inv c*-*-left *>
+    ldistr *>
+    pmap2 (+) (c*-*-left *> pmap (_ c*) ide-left) (c*-*-left *> pmap (_ c*) ide-left)
+
+\class RingedAction \extends OmegaRing, OmegaAction
+  \where \meta Of M => RingedAction { | C => M }

@@ -5,6 +5,7 @@
 \import Algebra.Monoid.Action
 \import Algebra.Ring
 \import Algebra.Algebra
+\import Algebra.Ring.Omega
 \import Algebra.Semiring
 \import Paths.Meta
 

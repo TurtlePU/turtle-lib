@@ -2,19 +2,13 @@
 \import Algebra.Meta
 \import Algebra.Module.LieAlgebra
 \import Algebra.Ring
+\import Algebra.Ring.Omega
 \import Meta
 \import Paths
 \import Paths.Meta
 
-\class Algebra \extends LieAlgebra, Ring {
-  | c*-*-left {c : C} {x y : E} : (c c* x) * y = c c* (x * y)
-  | c*-*-right {c : C} {x y : E} : x * (c c* y) = c c* (x * y)
-
-  | c*-rdistr =>
-    pmap (_ c*) (inv ide-left) *>
-    inv c*-*-left *>
-    ldistr *>
-    pmap2 (+) (c*-*-left *> pmap (_ c*) ide-left) (c*-*-left *> pmap (_ c*) ide-left)
+\class Algebra \extends RingedAction, LieAlgebra {
+  \override C : Ring
 
   | % f g => f * g - g * f
   | %-linear-left {a} {b} {x} {y} {z} =>
