@@ -1,9 +1,13 @@
 \import Algebra.Action
 \import Algebra.Monoid
 \import Algebra.Pointed
+\import Paths
 
 \class MonoidAction \extends MultiplicativeAction {
   \override C : Monoid
   | ide-c* {x : E} : ide c* x = x
   | *-c* {a b : C} {x : E} : (a * b) c* x = a c* b c* x
 } \where \meta Of M => MonoidAction { | C => M }
+
+\lemma c*-comm {M : CMonoid} {A : MonoidAction.Of M} {m n : M} {x : A} : m c* n c* x = n c* m c* x =>
+  inv *-c* *> pmap (__ c* _) *-comm *> *-c*

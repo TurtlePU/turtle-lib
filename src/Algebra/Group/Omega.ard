@@ -16,3 +16,4 @@
 }
 
 \class OmegaAction \extends MonoidAction, OmegaGroup
+  \where \meta Of M => OmegaAction { | C => M }

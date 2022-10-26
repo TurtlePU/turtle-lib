@@ -1,14 +1,7 @@
-\import Algebra.Action
 \import Algebra.Group.Omega
-\import Algebra.Monoid
-\import Algebra.Monoid.Action
 \import Algebra.Ring
-\import Paths
 
 \class Module \extends OmegaAction {
   \override C : Ring
   | c*-ldistr {c d : C} {x : E} : (c + {C} d) c* x = c c* x + d c* x
 } \where \meta Over C => Module { | C => C }
-
-\lemma c*-comm {C : CRing} {M : Module.Over C} {c d : C} {x : M} : c c* d c* x = d c* c c* x =>
-  inv *-c* *> pmap (__ c* _) *-comm *> *-c*

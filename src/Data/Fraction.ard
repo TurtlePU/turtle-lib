@@ -1,7 +1,41 @@
 \import Algebra.Action
+\import Algebra.Group
+\import Algebra.Group.Omega
 \import Algebra.Monoid
 \import Algebra.Monoid.Action
+\import Meta
+\import Paths
+\import Paths.Meta
 
 \truncated \data Fraction {M : Monoid} (A : MonoidAction.Of M) : \Set
   | \infix 7 / A M
   | reduce {p : A} {q r : M} : (r c* p) / (r * q) = p / q
+
+\instance FractionAbGroup {M : CMonoid} (O : OmegaAction.Of M) : AbGroup (Fraction O)
+  | zro => 0 / 1
+  | + => \case \elim __, \elim __ \with {
+    | / p q, / p' q' => (q' c* p + q c* p') / (q * q')
+    | / _ _, reduce =>
+      rewrite (c*-comm {M} {O}, *-c*, inv c*-rdistr, inv *-assoc, pmap (__ * _) *-comm, *-assoc) (path reduce)
+    | reduce, / _ _ => rewrite (c*-comm, *-c*, inv c*-rdistr, *-assoc) (path reduce)
+  }
+  | zro-left {/ _ _} => rewrite (O.c*-zro, zro-left, ide-c*, ide-left) idp
+  | zro-right {/ _ _} => rewrite (ide-c*, O.c*-zro, zro-right, ide-right) idp
+  | +-assoc {/ _ _} {/ _ _} {/ _ _} => run {
+    pmap2 (/) __ *-assoc,
+    pmap2 (+) c*-rdistr-flip *-c* *> inv __,
+    pmap2 (+) *-c* c*-rdistr *> inv +-assoc
+  }
+  | negative => \case \elim __ \with {
+    | / p q => negative p / q
+    | reduce => rewrite (inv O.c*-negative) (path reduce)
+  }
+  | negative-left {/ _ _} => rewrite (inv c*-rdistr, negative-left, O.c*-zro) =0
+  | +-comm {/ p q} {/ p' q'} => rewrite (+-comm, *-comm) idp
+  \where {
+    \lemma c*-rdistr-flip {M : CMonoid} {O : OmegaAction.Of M} {l m n : M} {a b : O}
+      : l c* (m c* a + n c* b) = m c* l c* a + n c* l c* b => c*-rdistr *> pmap2 (+) c*-comm c*-comm
+
+    \lemma =0 {M : Monoid} {O : OmegaAction.Of M} {m : M} : 0 / m = {Fraction O} 0 / 1 =>
+      inv (pmap2 (/) O.c*-zro ide-right) *> path reduce
+  }
