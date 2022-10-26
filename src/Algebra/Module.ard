@@ -1,4 +1,5 @@
 \import Algebra.Group
+\import Algebra.Monoid
 \import Algebra.Monoid.Action
 \import Algebra.Ring
 \import Paths
@@ -15,4 +16,7 @@
     cancel-left (c c* x) (inv c*-rdistr *> pmap (c c*) negative-right *> c*-zro *> inv negative-right)
 
   \lemma c*-rdistr_- {c : C} {x y : E} : c c* (x - y) = c c* x - c c* y => rewrite (c*-rdistr, c*-negative) idp
-}
+} \where \meta Over C => Module { | C => C }
+
+\lemma c*-comm {C : CRing} {M : Module.Over C} {c d : C} {x : M} : c c* d c* x = d c* c c* x =>
+  inv *-c* *> pmap (__ c* _) *-comm *> *-c*

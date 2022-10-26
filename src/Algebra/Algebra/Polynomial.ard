@@ -1,15 +1,15 @@
 \import Algebra.Group
+\import Algebra.Module
 \import Algebra.Monoid
 \import Algebra.Monoid.Action
 \import Algebra.Ring
-\import Algebra.Ring.Module
-\import Algebra.Ring.RingAlgebra
+\import Algebra.Algebra
 \import Algebra.Semiring
 \import Paths.Meta
 
-\func Polynomial (R : Ring) => \Pi {A : RingAlgebra { | C => R }} -> A -> A
+\func Polynomial (R : Ring) => \Pi {A : Algebra.Over R} -> A -> A
 
-\instance PolynomialAlgebra (R : Ring) : RingAlgebra (Polynomial R)
+\instance PolynomialAlgebra (R : Ring) : Algebra (Polynomial R)
   | C => R
   | c* c p x => c c* p x
   | ide-c* => ext (\lam _ => ide-c*)

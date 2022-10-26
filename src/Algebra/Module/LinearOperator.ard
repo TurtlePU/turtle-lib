@@ -1,36 +1,28 @@
+\import Algebra.Algebra
 \import Algebra.Group
+\import Algebra.Module
 \import Algebra.Monoid
 \import Algebra.Monoid.Action
-\import Algebra.Ring.Module
-\import LinearAlgebra.Algebra
-\import LinearAlgebra.VectorSpace
+\import Algebra.Ring
 \import Paths
 \import Paths.Meta
 
-\record LinearOperator (V : VectorSpace) {
-  | \coerce func : V -> V
-  | func-+ {u v : V} : func (u + v) = func u + func v
-  | func-c* {c : C} {v : V} : func (c c* v) = c c* func v
+\record LinearOperator (A : Module) {
+  | \coerce func : A -> A
+  | func-+ {u v : A} : func (u + v) = func u + func v
+  | func-c* {c : C} {v : A} : func (c c* v) = c c* func v
 
-  \lemma func-zro : func 0 = 0 => V.cancel-left (func 0) (rewrite (inv func-+, zro-right, zro-right) idp)
+  \lemma func-zro : func 0 = 0 => A.cancel-left (func 0) (rewrite (inv func-+, zro-right, zro-right) idp)
 
-  \lemma func-negative {v : V} : func (negative v) = negative (func v) =>
-    V.cancel-left (func v) (rewrite (inv func-+, negative-right, negative-right) func-zro)
+  \lemma func-negative {v : A} : func (negative v) = negative (func v) =>
+    A.cancel-left (func v) (rewrite (inv func-+, negative-right, negative-right) func-zro)
 }
 
-\instance LinearAlgebra (V : VectorSpace) : Algebra (LinearOperator V)
-  | C => V.C
-  | c* c f => \new LinearOperator {
-    | func v => c c* f v
-    | func-+ => rewrite (func-+ {f}) c*-rdistr
-    | func-c* => rewrite (func-c* {f}) V.c*-comm
-  }
-  | ide-c* => exts (\lam _ => ide-c*)
-  | *-c* => exts (\lam _ => *-c*)
+\instance LinearRing (M : Module) : Ring (LinearOperator M)
   | zro => \new LinearOperator {
     | func _ => 0
     | func-+ => inv zro-right
-    | func-c* => inv V.c*-zro
+    | func-c* => inv M.c*-zro
   }
   | + f g => \new LinearOperator {
     | func v => f v + g v
@@ -42,12 +34,11 @@
   | +-assoc => exts (\lam _ => +-assoc)
   | negative f => \new LinearOperator {
     | func v => negative (f v)
-    | func-+ => rewrite (func-+ {f}, V.negative_+) +-comm
-    | func-c* => rewrite (func-c* {f}) (inv V.c*-negative)
+    | func-+ => rewrite (func-+ {f}, M.negative_+) +-comm
+    | func-c* => rewrite (func-c* {f}) (inv M.c*-negative)
   }
   | negative-left => exts (\lam _ => negative-left)
   | +-comm => exts (\lam _ => +-comm)
-  | c*-ldistr => exts (\lam _ => c*-ldistr)
   | ide => \new LinearOperator {
     | func v => v
     | func-+ => idp
@@ -63,5 +54,17 @@
   | *-assoc => idp
   | ldistr => exts (\lam _ => func-+)
   | rdistr => idp
+
+\instance LinearAlgebra {R : CRing} (M : Module.Over R) : Algebra (LinearOperator M)
+  | Ring => LinearRing M
+  | C => R
+  | c* c f => \new LinearOperator {
+    | func v => c c* f v
+    | func-+ => rewrite (func-+ {f}) c*-rdistr
+    | func-c* => rewrite (func-c* {f}) c*-comm
+  }
+  | ide-c* => exts (\lam _ => ide-c*)
+  | *-c* => exts (\lam _ => *-c*)
+  | c*-ldistr => exts (\lam _ => c*-ldistr)
   | c*-*-left => idp
   | c*-*-right => exts (\lam _ => func-c*)

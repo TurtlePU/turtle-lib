@@ -1,14 +1,20 @@
-\import Algebra.Field
 \import Algebra.Group
 \import Algebra.Meta
-\import Algebra.Ring.RingAlgebra
-\import LinearAlgebra.VectorSpace.LieAlgebra
+\import Algebra.Module.LieAlgebra
+\import Algebra.Ring
 \import Meta
 \import Paths
 \import Paths.Meta
 
-\class Algebra \extends LieAlgebra, RingAlgebra {
-  \override C : Field
+\class Algebra \extends LieAlgebra, Ring {
+  | c*-*-left {c : C} {x y : E} : (c c* x) * y = c c* (x * y)
+  | c*-*-right {c : C} {x y : E} : x * (c c* y) = c c* (x * y)
+
+  | c*-rdistr =>
+    pmap (_ c*) (inv ide-left) *>
+    inv c*-*-left *>
+    ldistr *>
+    pmap2 (+) (c*-*-left *> pmap (_ c*) ide-left) (c*-*-left *> pmap (_ c*) ide-left)
 
   | % f g => f * g - g * f
   | %-linear-left {a} {b} {x} {y} {z} =>
@@ -21,4 +27,6 @@
   | %-jacobi => equation
 } \where {
   \lemma -_+ {G : AbGroup} (x y z : G) : x - (y + z) = x - z - y => pmap (x +) (negative_+ y z) *> inv +-assoc
+
+  \meta Over R => Algebra { | C => R }
 }
