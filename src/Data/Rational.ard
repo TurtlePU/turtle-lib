@@ -5,16 +5,18 @@
 \import Algebra.Group.Omega
 \import Algebra.Meta
 \import Algebra.Monoid
+\import Algebra.Ordered
 \import Algebra.Ring.Omega
 \import Algebra.Semiring
 \import Data.Fraction
 \import Logic
 \import Meta
+\import Order.LinearOrder
 \import Paths
 \import Paths.Meta
 \import Relation.Equivalence
 \import Set
-\open AddGroup (#0)
+\open AddGroup (#0, #0-zro)
 
 \func nonZeroAction (D : IntegralDomain) : RingedAction D \cowith
   | Ring => D
@@ -60,15 +62,71 @@
     \lemma prop {D : IntegralDomain} {p p' : D} {q q' : D.nonZeroMonoid} (prf : p / q = {Rational D} p' / q')
       : (p, q) ~ {Proportion D} (p', q') =>
       Quotient.equalityEquiv (Proportion D) {(p, q)} {(p', q')} (pmap toQuotient prf)
+
+    \lemma =0 {D : IntegralDomain} {p : D} {q : D.nonZeroMonoid} (prf : p = 0)
+      : p / q = {FractionRing (nonZeroAction D)} 0 => rewrite prf FractionAbGroup.=0
+  }
+
+\instance RationalDomain (D : IntegralDomain) : IntegralDomain (Rational D)
+  | Ring => FractionRing _
+  | #0 => \case \elim __ \with {
+    | / p _ => p `#0
+    | reduce {_} {_} {r} => propExt D.#0-*-right (\lam p#0 => apartZeroProduct r.2 p#0)
+  }
+  | #0-zro => D.#0-zro
+  | #0-+ (/ p q) (/ p' q') +#0 => ||.map D.#0-*-right D.#0-*-right (D.#0-+ _ _ +#0)
+  | #0-tight {/ _ _} x/#0 => Rational.=0 (D.#0-tight x/#0)
+  | #0-*-left {/ _ _} {/ _ _} => D.#0-*-left
+  | zro#ide => D.zro#ide
+  | apartZeroProduct {/ _ _} {/ _ _} => D.apartZeroProduct
+  | *-comm {/ _ _} {/ _ _} => pmap2 (/) *-comm *-comm
+
+\instance RationalOrder (R : OrderedCRing) : OrderedCRing (Rational R)
+  | CRing => RationalDomain R
+  | isPos => \case \elim __ \with {
+    | / p (q, _) => isPos (q * p)
+    | reduce {p} {q} {r} =>
+      pmap isPos (equation : r.1 * q.1 * (r.1 * p) = (q.1 * p) * (r.1 * r.1)) *>
+      propExt (R.positive_*-cancel-left __ (sqPos r.2)) (positive_* __ (sqPos r.2))
+  }
+  | zro/>0 zro>0 => zro/>0 (transport isPos ide-left zro>0)
+  | positive_+ {/ _ q} {/ _ q'} qp>0 q'p'>0 => run {
+    rewrite ldistr,
+    positive_+ (transport isPos equation (positive_* qp>0 (sqPos q'.2))),
+    transport isPos equation (positive_* q'p'>0 (sqPos q.2))
+  }
+  | ide>zro => transport isPos equation ide>zro
+  | <_+-comparison (/ p q) (/ p' q') +>0 =>
+    \have prf : isPos ((q.1 * p) * (q'.1 * q'.1) + (q'.1 * p') * (q.1 * q.1)) => transport isPos equation +>0
+    \in ||.map (R.positive_*-cancel-left __ (sqPos q'.2)) (R.positive_*-cancel-left __ (sqPos q.2))
+        (<_+-comparison _ _ prf)
+  | <_+-connectedness {/ _ q} qp/>0 -qp/>0 => run {
+    Rational.=0,
+    R.nonZero-left (apartNonZero q.2),
+    <_+-connectedness qp/>0,
+    transport (\lam x => Not (isPos x)) (R.negative_*-right _ _), -qp/>0
+  }
+  | positive_* {/ _ _} {/ _ _} qp>0 q'p'>0 => transport isPos equation (positive_* qp>0 q'p'>0)
+  | positive_*-cancel {/ _ _} {/ _ _} *>0 => run {
+    transport2 (\lam x y => _ || (\Sigma (isPos x) (isPos y)))
+        (inv (R.negative_*-right _ _)) (inv (R.negative_*-right _ _)),
+    positive_*-cancel {R},
+    transport isPos equation *>0
+  }
+  \where {
+    \lemma sqPos {R : OrderedRing} {x : R} (x#0 : x `#0) : isPos (x * x) =>
+      \case R.#0=>eitherPosOrNeg x#0 \with {
+        | byLeft x>0 => positive_* x>0 x>0
+        | byRight x<0 => negative_* x<0 x<0
+      }
   }
 
 \instance RationalField (D : IntegralDomain.Dec) : DiscreteField (Rational D)
-  | Ring => FractionRing _
+  | CRing => RationalDomain D
   | zro/=ide z=i => run {
     D.#0-zro, transportInv #0 __ D.zro#ide,
     inv zro_*-right *> Rational.prop z=i <* ide-left
   }
-  | *-comm {/ _ _} {/ _ _} => pmap2 (/) *-comm *-comm
   | decideEq (/ p q) (/ p' q') => \case D.decideEq (q' c* {nonZeroAction D} p) (q c* {nonZeroAction D} p') \with {
     | yes x~y => yes (Rational.eq x~y)
     | no x/~y => no (\lam eq => x/~y (Rational.prop eq))
@@ -96,4 +154,22 @@
   | finv_inv {/ p _} x/=0 => cases (D.decideEq p 0) \with {
     | yes p=0 => run { absurd, x/=0, Rational.eq, rewrite p=0 equation }
     | no _ => Rational.eq equation
+  }
+
+\instance RationalOrderedField (R : OrderedCRing.Dec) : DiscreteOrderedField (Rational R)
+  | DiscreteField => RationalField R
+  | isPos => isPos {RationalOrder R}
+  | zro/>0 => zro/>0 {RationalOrder R}
+  | positive_+ => positive_+ {RationalOrder R}
+  | ide>zro => ide>zro {RationalOrder R}
+  | positive_* => positive_* {RationalOrder R}
+  | #0=>eitherPosOrNeg {/ p q} i => \case R.trichotomy (q.1 * p) 0 \with {
+    | less qp<0 => byRight (transport isPos equation qp<0)
+    | equals qp=0 => run {
+      absurd, #0-zro {RationalField R},
+      transport Monoid.Inv __ i, Rational.=0,
+      R.nonZero-cancel-left (apartNonZero q.2),
+      qp=0 *> inv zro_*-right
+    }
+    | greater qp>0 => byLeft (transport isPos equation qp>0)
   }
