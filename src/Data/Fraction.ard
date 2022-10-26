@@ -1,0 +1,6 @@
+\import Algebra.Monoid
+\import Algebra.Monoid.Action
+
+\truncated \data Fraction (A : MonoidAction) : \Set
+  | \infix 7 / A A.C
+  | reduce {q r : A.C} {p : A} : (r c* p) / (r * q) = p / q
