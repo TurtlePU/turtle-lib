@@ -39,7 +39,6 @@
     | func-c* => rewrite (func-c* {f}, func-c* {g}) (inv c*-rdistr)
   }
   | zro-left => exts (\lam _ => zro-left)
-  | zro-right => exts (\lam _ => zro-right)
   | +-assoc => exts (\lam _ => +-assoc)
   | negative f => \new LinearOperator {
     | func v => negative (f v)
@@ -48,7 +47,6 @@
   }
   | negative-left => exts (\lam _ => negative-left)
   | +-comm => exts (\lam _ => +-comm)
-  | c*-rdistr => exts (\lam _ => c*-rdistr)
   | c*-ldistr => exts (\lam _ => c*-ldistr)
   | ide => \new LinearOperator {
     | func v => v

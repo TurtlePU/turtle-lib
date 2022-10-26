@@ -40,7 +40,6 @@
     | leibnitz => rewrite (leibnitz {f}, leibnitz {g}) equation
   }
   | zro-left => exts (\lam _ => zro-left)
-  | zro-right => exts (\lam _ => zro-right)
   | +-assoc => exts (\lam _ => +-assoc)
   | negative f => \new Derivation {
     | LinearOperator => negative {LinearAlgebra V} f

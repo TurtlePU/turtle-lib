@@ -1,6 +1,14 @@
 \import Algebra.Ring
 \import Algebra.Ring.Module
+\import Paths
 
-\class RingAlgebra \extends Module, Ring
+\class RingAlgebra \extends Module, Ring {
   | c*-*-left {c : C} {x y : E} : (c c* x) * y = c c* (x * y)
   | c*-*-right {c : C} {x y : E} : x * (c c* y) = c c* (x * y)
+
+  | c*-rdistr =>
+    pmap (_ c*) (inv ide-left) *>
+    inv c*-*-left *>
+    ldistr *>
+    pmap2 (+) (c*-*-left *> pmap (_ c*) ide-left) (c*-*-left *> pmap (_ c*) ide-left)
+}
