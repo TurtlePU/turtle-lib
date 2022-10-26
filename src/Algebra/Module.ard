@@ -1,21 +1,13 @@
-\import Algebra.Group
+\import Algebra.Action
+\import Algebra.Group.Omega
 \import Algebra.Monoid
 \import Algebra.Monoid.Action
 \import Algebra.Ring
 \import Paths
-\import Paths.Meta
 
-\class Module \extends MonoidAction, AbGroup {
+\class Module \extends OmegaAction {
   \override C : Ring
-  | c*-rdistr {c : C} {x y : E} : c c* (x + y) = c c* x + c c* y
   | c*-ldistr {c d : C} {x : E} : (c + {C} d) c* x = c c* x + d c* x
-
-  \lemma c*-zro {c : C} : c c* 0 = 0 => cancel-left (c c* 0) (inv c*-rdistr *> pmap (_ c*) zro-left *> inv zro-right)
-
-  \lemma c*-negative {c : C} {x : E} : c c* negative x = negative (c c* x) =>
-    cancel-left (c c* x) (inv c*-rdistr *> pmap (c c*) negative-right *> c*-zro *> inv negative-right)
-
-  \lemma c*-rdistr_- {c : C} {x y : E} : c c* (x - y) = c c* x - c c* y => rewrite (c*-rdistr, c*-negative) idp
 } \where \meta Over C => Module { | C => C }
 
 \lemma c*-comm {C : CRing} {M : Module.Over C} {c d : C} {x : M} : c c* d c* x = d c* c c* x =>

@@ -1,9 +1,9 @@
-\import Algebra.Group.Action
+\import Algebra.Action
 \import Algebra.Group
+\import Algebra.Group.Action
 \import Algebra.Group.Involution
 \import Algebra.Involutive
 \import Algebra.Involutive.Category
-\import Algebra.Monoid.Action
 \import Data.Adjunct
 \import Function
 \import Meta

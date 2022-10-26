@@ -1,9 +1,9 @@
+\import Algebra.Action
 \import Algebra.Monoid
 \import Algebra.Pointed
-\import Set
 
-\class MonoidAction \extends BaseSet
-  | C : Monoid
-  | \infixr 7 c* : C -> E -> E
+\class MonoidAction \extends MultiplicativeAction {
+  \override C : Monoid
   | ide-c* {x : E} : ide c* x = x
   | *-c* {a b : C} {x : E} : (a * b) c* x = a c* b c* x
+} \where \meta Of M => MonoidAction { | C => M }

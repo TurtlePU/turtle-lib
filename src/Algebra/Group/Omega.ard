@@ -1,0 +1,18 @@
+\import Algebra.Action
+\import Algebra.Group
+\import Algebra.Monoid.Action
+\import Paths
+\import Paths.Meta
+
+\class OmegaGroup \extends MultiplicativeAction, AbGroup {
+  | c*-rdistr {c : C} {x y : E} : c c* (x + y) = c c* x + c c* y
+
+  \lemma c*-zro {c : C} : c c* 0 = 0 => cancel-left (c c* 0) (inv c*-rdistr *> pmap (_ c*) zro-left *> inv zro-right)
+
+  \lemma c*-negative {c : C} {x : E} : c c* negative x = negative (c c* x) =>
+    cancel-left (c c* x) (inv c*-rdistr *> pmap (c c*) negative-right *> c*-zro *> inv negative-right)
+
+  \lemma c*-rdistr_- {c : C} {x y : E} : c c* (x - y) = c c* x - c c* y => rewrite (c*-rdistr, c*-negative) idp
+}
+
+\class OmegaAction \extends MonoidAction, OmegaGroup

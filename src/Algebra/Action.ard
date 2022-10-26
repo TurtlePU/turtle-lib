@@ -1,0 +1,5 @@
+\import Set
+
+\class MultiplicativeAction \extends BaseSet
+  | C : BaseSet
+  | \infixr 7 c* : C -> E -> E

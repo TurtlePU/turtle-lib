@@ -1,3 +1,4 @@
+\import Algebra.Action
 \import Algebra.Group
 \import Algebra.Group.Normal
 \import Algebra.Group.Sub
@@ -5,7 +6,6 @@
 \import Algebra.Involutive.Category
 \import Algebra.Meta
 \import Algebra.Monoid
-\import Algebra.Monoid.Action
 \import Algebra.Monoid.Closure
 \import Data.Adjunct
 \import Data.List

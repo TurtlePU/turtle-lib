@@ -1,5 +1,7 @@
+\import Algebra.Action
 \import Algebra.Algebra
 \import Algebra.Group
+\import Algebra.Group.Omega
 \import Algebra.Module
 \import Algebra.Monoid
 \import Algebra.Monoid.Action

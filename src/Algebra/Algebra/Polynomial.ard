@@ -1,3 +1,4 @@
+\import Algebra.Action
 \import Algebra.Group
 \import Algebra.Module
 \import Algebra.Monoid

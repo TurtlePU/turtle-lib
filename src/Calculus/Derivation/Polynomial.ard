@@ -1,6 +1,8 @@
+\import Algebra.Action
 \import Algebra.Algebra
 \import Algebra.Algebra.Polynomial
 \import Algebra.Group
+\import Algebra.Group.Omega
 \import Algebra.Meta
 \import Algebra.Module
 \import Algebra.Monoid
