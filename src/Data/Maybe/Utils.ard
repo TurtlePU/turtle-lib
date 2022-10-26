@@ -1,0 +1,18 @@
+\import Category.Monad
+\import Data.Maybe
+\import Meta
+\import Paths.Meta
+\import Set.Category
+
+\instance MaybeMonad : Monad SetCat Maybe
+  | Pure _ => just
+  | Bind f => \case \elim __ \with {
+    | nothing => nothing
+    | just a => f a
+  }
+  | Func-Bind => idp
+  | left-id _ => idp
+  | right-id _ => ext (\lam _ => unfold (mcases idp))
+  | assoc _ _ => ext (\lam x => unfold (cases x idp \with {
+    | just _ => mcases idp
+  }))
