@@ -1,0 +1,23 @@
+\import Category
+\import Category.Functor
+\import Meta
+\import Paths
+\import Paths.Meta
+
+\class Monad \extends Functor {
+  | D => C
+
+  | Pure (X : C) : Hom X (F X)
+  | Bind {X Y : C} : Hom X (F Y) -> Hom (F X) (F Y)
+  | Func-Bind {X Y : C} {f : Hom X Y} : Func f = Bind (Pure Y ∘ f)
+
+  | left-id {X Y : C} (f : Hom X (F Y)) : Bind f ∘ Pure X = f
+  | right-id {X Y : C} (f : Hom X (F Y)) : Bind (Pure Y) ∘ f = f
+  | assoc {X Y Z : C} (g : Hom Y (F Z)) (f : Hom X (F Y)) : Bind g ∘ Bind f = Bind (Bind g ∘ f)
+
+  \default Func \as func {X Y : C} (f : Hom X Y) : Hom (F X) (F Y) => Bind (Pure Y ∘ f)
+  \default Func-id \as func-id {X : C} : func (id X) = id (F X) =>
+  unfold func (rewrite id-right (inv id-right *> right-id _))
+  \default Func-o \as func-o {X Y Z : C} {g : Hom Y Z} {f : Hom X Y} : func (g ∘ f) = func g ∘ func f =>
+  unfold func (rewrite (assoc, inv o-assoc, inv o-assoc, left-id) idp)
+}
