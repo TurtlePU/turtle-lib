@@ -1,14 +1,14 @@
+\import Algebra.Field
 \import Algebra.Group
 \import Algebra.Meta
-\import Algebra.Ring
+\import Algebra.Ring.RingAlgebra
 \import LinearAlgebra.VectorSpace.LieAlgebra
 \import Meta
 \import Paths
 \import Paths.Meta
 
-\class Algebra \extends LieAlgebra, Ring {
-  | c*-*-left {c : C} {x y : E} : (c c* x) * y = c c* (x * y)
-  | c*-*-right {c : C} {x y : E} : x * (c c* y) = c c* (x * y)
+\class Algebra \extends LieAlgebra, RingAlgebra {
+  \override C : Field
 
   | % f g => f * g - g * f
   | %-linear-left {a} {b} {x} {y} {z} =>

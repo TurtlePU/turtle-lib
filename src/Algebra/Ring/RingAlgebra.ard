@@ -1,0 +1,6 @@
+\import Algebra.Ring
+\import Algebra.Ring.Module
+
+\class RingAlgebra \extends Module, Ring
+  | c*-*-left {c : C} {x y : E} : (c c* x) * y = c c* (x * y)
+  | c*-*-right {c : C} {x y : E} : x * (c c* y) = c c* (x * y)

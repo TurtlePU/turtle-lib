@@ -1,0 +1,35 @@
+\import Algebra.Group
+\import Algebra.Monoid
+\import Algebra.Monoid.Action
+\import Algebra.Ring
+\import Algebra.Ring.Module
+\import Algebra.Ring.RingAlgebra
+\import Algebra.Semiring
+\import Paths.Meta
+
+\func Polynomial (R : Ring) => \Pi {A : RingAlgebra { | C => R }} -> A -> A
+
+\instance PolynomialAlgebra (R : Ring) : RingAlgebra (Polynomial R)
+  | C => R
+  | c* c p x => c c* p x
+  | ide-c* => ext (\lam _ => ide-c*)
+  | *-c* => ext (\lam _ => *-c*)
+  | zro _ => 0
+  | + p q x => p x + q x
+  | zro-left => ext (\lam _ => zro-left)
+  | zro-right => ext (\lam _ => zro-right)
+  | +-assoc => ext (\lam _ => +-assoc)
+  | negative p x => negative (p x)
+  | negative-left => ext (\lam _ => negative-left)
+  | +-comm => ext (\lam _ => +-comm)
+  | c*-rdistr => ext (\lam _ => c*-rdistr)
+  | c*-ldistr => ext (\lam _ => c*-ldistr)
+  | ide _ => 1
+  | * p q x => p x * q x
+  | ide-left => ext (\lam _ => ide-left)
+  | ide-right => ext (\lam _ => ide-right)
+  | *-assoc => ext (\lam _ => *-assoc)
+  | ldistr => ext (\lam _ => ldistr)
+  | rdistr => ext (\lam _ => rdistr)
+  | c*-*-left => ext (\lam _ => c*-*-left)
+  | c*-*-right => ext (\lam _ => c*-*-right)
