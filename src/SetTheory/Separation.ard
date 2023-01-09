@@ -1,5 +1,8 @@
 \import Logic
+\import Logic.Meta
 \import Order.Lattice
+\import Paths
+\import Paths.Meta
 \import SetTheory.Extensional
 
 \class SeparationSetTheory \extends ExtensionalSetTheory, MeetSemilattice {
@@ -21,12 +24,28 @@
 
   \lemma sub-univ {X Y Z : E} : Z <= X -> Z meets (\lam u => Not (u in Y)) -> Z <= X !- Y => sep-under
 
-  \func Meet (X : E) {x : E} : x in X -> E => \lam _ => x !| (\lam u => X meets (u in))
+  \func Meet {X : E} : nonEmpty X -> E => (Meet-impl __).1
+    \where {
+      \func Meet-impl {X : E} : nonEmpty X -> Meet0-data X =>
+        TruncP.rec Meet0-data-isProp __ (\lam (x, inX) => (Meet0 inX, inP (x, inX, idp)))
 
-  \lemma Meet-prop {X x y u : E} (x-inX : x in X) (y-inX : y in X) : u in Meet X x-inX -> u in y => sep-meets __ y-inX
+      \func Meet0-data (X : E) => \Sigma (M : E) (∃ (x : E) (inX : x in X) (Meet0 inX = M))
 
-  \lemma Meet-univ {X M x : E} (x-inX : x in X) : X meets (M <=) -> M <= Meet X x-inX =>
-    \lam XM inM => sep-prop (XM x-inX inM) (XM __ inM)
+      \lemma Meet0-data-isProp {X : E} (d d' : Meet0-data X) : d = d' \elim d, d'
+        | (M, inP (x, x-inX, M0x=M)), (M', inP (y, y-inX, M0y=M')) => ext (inv M0x=M *> Meet0-ok x-inX y-inX *> M0y=M')
+
+      \func Meet0 {X : E} {x : E} : x in X -> E => \lam _ => x !| (\lam u => X meets (u in))
+
+      \func Meet0-ok {X x y : E} (x-inX : x in X) (y-inX : y in X) : Meet0 x-inX = Meet0 y-inX =>
+        set-ext (\lam u => (\lam in-x-meet => sep-prop (sep-meets in-x-meet y-inX) (sep-meets in-x-meet),
+                            \lam in-y-meet => sep-prop (sep-meets in-y-meet x-inX) (sep-meets in-y-meet)))
+    }
+
+  \lemma Meet-prop {X : E} (nX : nonEmpty X) {x : E} : x in X -> Meet nX <= x =>
+    \lam x-inX u-inMeet => {?}
+
+  \lemma Meet-univ {X : E} (nX : nonEmpty X) {M : E} : X meets (M <=) -> M <= Meet nX =>
+    \lam XM u-inM => {?}
 
   \lemma sep-under {X Y : E} {Phi : E -> \Prop} : Y <= X -> Y meets Phi -> Y <= X !| Phi =>
     \lam Y<=X YPhi inY => sep-prop (Y<=X inY) (YPhi inY)
