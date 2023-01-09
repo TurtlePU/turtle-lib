@@ -1,0 +1,5 @@
+\import SetTheory.Cartesian
+\import SetTheory.Replacement
+\import SetTheory.Union
+
+\class ZF \extends RegularSetTheory, ReplacementSetTheory, InfinitySetTheory
