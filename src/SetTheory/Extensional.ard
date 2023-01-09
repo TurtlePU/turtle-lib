@@ -1,0 +1,18 @@
+\import Logic
+\import Meta
+\import Order.LinearOrder
+\import Paths.Meta
+\import SetTheory.Signature
+
+\class ExtensionalSetTheory \extends SetTheory, BiorderedSet {
+  | set-ext {X Y : E} : (\Pi (u : E) -> u in X <-> u in Y) -> X = Y
+
+  | <=-antisymmetric x<=y y<=x => set-ext (\lam _ => (x<=y, y<=x))
+
+  | < x y => \Sigma (x <= y) (x /= y)
+  | <=-less => __.1
+  | <-irreflexive (_, x/=x) => x/=x idp
+  | <-transitive x<y => <-transitive-right (<=-less x<y)
+  | <-transitive-right x<=y (y<=z, y/=z) =>
+    (x<=y <=∘ y<=z, \lam x=z => run { y/=z, <=-antisymmetric y<=z, rewriteI x=z x<=y })
+}

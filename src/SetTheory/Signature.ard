@@ -1,2 +1,9 @@
-\class SetTheory (S : \Type)
-  | \infix 1 in : S -> S -> \Prop
+\import Order.PartialOrder
+
+\class SetTheory \extends Preorder {
+  | \infix 1 in : E -> E -> \Prop
+
+  | <= x y => \Pi {u : E} (u in x) -> u in y
+  | <=-refl i => i
+  | <=∘ x<=y y<=z i => y<=z (x<=y i)
+}
