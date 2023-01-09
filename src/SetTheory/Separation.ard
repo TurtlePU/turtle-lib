@@ -1,0 +1,40 @@
+\import Logic
+\import Order.Lattice
+\import SetTheory.Extensional
+
+\class SeparationSetTheory \extends ExtensionalSetTheory, MeetSemilattice {
+  | \infixl 5 !| (X : E) (Phi : E -> \Prop) : E
+  | sep-sub {X : E} {Phi : E -> \Prop} : X !| Phi <= X
+  | sep-meets {X : E} {Phi : E -> \Prop} : X !| Phi meets Phi
+  | sep-prop {X : E} {Phi : E -> \Prop} {u : E} : u in X -> Phi u -> u in X !| Phi
+
+  | ∧ X Y => X !| (`in Y)
+  | meet-left => sep-sub
+  | meet-right => sep-meets
+  | meet-univ z<=x z<=y inZ => sep-prop (z<=x inZ) (z<=y inZ)
+
+  \func \infixl 5 !- (X Y : E) => X !| (\lam u => Not (u in Y))
+
+  \lemma sub-left {X Y : E} : X !- Y <= X => sep-sub
+
+  \lemma sub-right {X Y u : E} : u in X !- Y -> Not (u in Y) => sep-meets
+
+  \lemma sub-univ {X Y Z : E} : Z <= X -> Z meets (\lam u => Not (u in Y)) -> Z <= X !- Y => sep-under
+
+  \func Meet (X : E) {x : E} : x in X -> E => \lam _ => x !| (\lam u => X meets (u in))
+
+  \lemma Meet-prop {X x y u : E} (x-inX : x in X) (y-inX : y in X) : u in Meet X x-inX -> u in y => sep-meets __ y-inX
+
+  \lemma Meet-univ {X M x : E} (x-inX : x in X) : X meets (M <=) -> M <= Meet X x-inX =>
+    \lam XM inM => sep-prop (XM x-inX inM) (XM __ inM)
+
+  \lemma sep-under {X Y : E} {Phi : E -> \Prop} : Y <= X -> Y meets Phi -> Y <= X !| Phi =>
+    \lam Y<=X YPhi inY => sep-prop (Y<=X inY) (YPhi inY)
+
+  \lemma sep-above {X Y : E} {Phi : E -> \Prop} : (\Pi {u : E} (u in X) (Phi u) -> u in Y) -> X !| Phi <= Y =>
+    \lam YS in! => YS (sep-sub in!) (sep-meets in!)
+
+  \lemma sep-univ {X Y : E} {Phi : E -> \Prop}
+    : Y <= X -> Y meets Phi -> (\Pi {u : E} (u in X) (Phi u) -> u in Y) -> Y = X !| Phi =>
+    \lam Y<=X YPhi YS => <=-antisymmetric (sep-under Y<=X YPhi) (sep-above YS)
+}
