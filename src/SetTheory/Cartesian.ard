@@ -1,0 +1,87 @@
+\import Logic
+\import Meta
+\import Paths
+\import SetTheory.Extensional
+\import SetTheory.Signature
+
+\class EmptyPairSetTheory \extends SetTheory {
+  | empty : E
+  | empty-prop {x : E} : Not (x in empty)
+
+  | pair : E -> E -> E
+  | pair-left {x y : E} : x in pair x y
+  | pair-right {x y : E} : y in pair x y
+  | pair-member {x y u : E} : u in pair x y -> (u = x) || (u = y)
+
+  \func single (x : E) => pair x x
+
+  \lemma single-in {x : E} : x in single x => pair-left
+
+  \lemma single-member {x u : E} : u in single x -> u = x =>
+    \lam i => ||.rec' (\lam x => x) (\lam x => x) (pair-member i)
+
+  \lemma single-inj {x y : E} : single x = single y -> x = y =>
+    \lam sx=sy => single-member (transport (_ in) sx=sy single-in)
+
+  \lemma single-left {x y z : E} : pair x y = single z -> x = z =>
+    \lam pxy=sz => single-member (transport (_ in) pxy=sz pair-left)
+
+  \lemma single-right {x y z : E} : pair x y = single z -> y = z =>
+    \lam pxy=sz => single-member (transport (_ in) pxy=sz pair-right)
+
+  \lemma pair-collapse {x y z : E} : pair x y = single z -> x = y =>
+    \lam pxy=sz => single-left pxy=sz *> inv (single-right pxy=sz)
+
+  \lemma pair-cases {x y z w : E} : pair x y = pair z w -> (\Sigma (x = z) (y = w)) || (\Sigma (x = w) (y = z)) =>
+    \lam pxy=pzw => \case (pair-member (transport (_ in) pxy=pzw pair-left),
+                           pair-member (transport (_ in) pxy=pzw pair-right)) \with {
+      | (byLeft x=z, byLeft y=z) => run {
+        byLeft, \lam p => (x=z, p),
+        y=z *> pair-collapse __,
+        inv pxy=pzw *> pmap (pair _) __,
+        y=z *> inv x=z
+      }
+      | (byLeft x=z, byRight y=w) => byLeft (x=z, y=w)
+      | (byRight x=w, byLeft y=z) => byRight (x=w, y=z)
+      | (byRight x=w, byRight y=w) => run {
+        byRight, \lam p => (x=w, p),
+        y=w *> inv __,
+        pair-collapse __,
+        inv pxy=pzw *> pmap (pair _) __,
+        y=w *> inv x=w
+      }
+    }
+
+  \func ordered (x y : E) => pair (single x) (pair x y)
+
+  \lemma ordered-first {x y z w : E} : ordered x y = ordered z w -> x = z =>
+    \lam xy=zw => \case pair-cases xy=zw \with {
+      | byLeft (sx=sz, _) => single-inj sx=sz
+      | byRight (sx=pzw, _) => inv (single-left (inv sx=pzw))
+    }
+
+  \lemma ordered-second {x y z w : E} : ordered x y = ordered z w -> y = w =>
+    \lam xy=zw => \case pair-cases xy=zw \with {
+      | byLeft (sx=sz, pxy=pzw) => \case pair-cases pxy=pzw \with {
+        | byLeft (_, y=w) => y=w
+        | byRight (x=w, y=z) => y=z *> inv (single-inj sx=sz) *> x=w
+      }
+      | byRight (sx=pzw, pxy=sz) => inv (single-right (inv sx=pzw) *> pair-collapse pxy=sz)
+    }
+} \where {
+  \class Ext \extends EmptyPairSetTheory, ExtensionalSetTheory {
+    \lemma empty-univ {e : E} : (\Pi {x : E} -> Not (x in e)) -> e = empty =>
+      \lam e-prop => set-ext (\lam u => (\lam i => absurd (e-prop i), \lam i => absurd (empty-prop i)))
+
+    \lemma pair-univ {x y p : E} : x in p -> y in p -> p meets (\lam u => (u = x) || (u = y)) -> p = pair x y =>
+      \lam x-in-p y-in-p p-univ => set-ext (\lam u =>
+          (\lam i => ||.rec' (transport (u in pair __ y) __ pair-left) (transport (u in pair x __) __ pair-right) (p-univ i),
+           \lam i => ||.rec' (transportInv (`in p) __ x-in-p) (transportInv (`in p) __ y-in-p) (pair-member i)))
+
+    \lemma pair-sym {x y : E} : pair x y = pair y x =>
+      pair-univ pair-right pair-left (\lam i => ||.rec' byRight byLeft (pair-member i))
+
+    \lemma single-univ {x s : E} : x in s -> s meets (`= x) -> s = single x =>
+      \lam x-in-s s-univ => pair-univ x-in-s x-in-s (\lam i => byLeft (s-univ i))
+  }
+}
