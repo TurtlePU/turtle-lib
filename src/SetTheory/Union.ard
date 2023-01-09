@@ -2,7 +2,7 @@
 \import Logic.Meta
 \import Order.Lattice
 \import Paths.Meta
-\import SetTheory.Cartesian
+\import SetTheory.Pair
 
 \class UnionSetTheory \extends EmptyPairSetTheory.Ext, Bounded.JoinSemilattice {
   | union : E -> E
