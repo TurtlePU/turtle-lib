@@ -20,7 +20,7 @@
   | %-alter => negative-right
   | %-jacobi => equation
 } \where {
-  \lemma -_+ {G : AbGroup} (x y z : G) : x - (y + z) = x - z - y => pmap (x +) (negative_+ y z) *> inv +-assoc
+  \lemma -_+ {G : AbGroup} (x y z : G) : x - (y + z) = x - z - y => pmap (x +) negative_+ *> inv +-assoc
 
   \meta Over R => Algebra { | C => R }
 }
