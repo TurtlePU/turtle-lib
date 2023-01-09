@@ -1,0 +1,8 @@
+\import Logic.Meta
+\import SetTheory.Signature
+
+\class ReplacementSetTheory \extends SetTheory
+  | image {Phi : E -> E -> \Prop} : isFun Phi -> E -> E
+  | image-meets {Phi : E -> E -> \Prop} (f : isFun Phi) (X : E)
+  : image f X meets (\lam y => ∃ (x : E) (x in X) (Phi x y))
+  | image-prop {Phi : E -> E -> \Prop} (f : isFun Phi) (X : E) {x y : E} : x in X -> Phi x y -> y in image f X

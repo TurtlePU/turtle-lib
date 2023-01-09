@@ -11,6 +11,8 @@
 
   \func \infix 1 meets (X : E) (Phi : E -> \Prop) : \Prop => \Pi {u : E} -> u in X -> Phi u
 
+  \func isFun (Phi : E -> E -> \Prop) : \Prop => \Pi {x y y' : E} (Phi x y) (Phi x y') -> y = y'
+
   \func \infix 1 ~ (X Y : E) : \Prop => \Pi (u : E) -> u in X <-> u in Y
 
   \func Distinctness : Equivalence E \cowith
