@@ -13,6 +13,8 @@
   | <=-less => __.1
   | <-irreflexive (_, x/=x) => x/=x idp
   | <-transitive x<y => <-transitive-right (<=-less x<y)
+  | <-transitive-left (x<=y, x/=y) y<=z =>
+    (x<=y <=∘ y<=z, \lam x=z => run { x/=y, <=-antisymmetric x<=y, rewrite x=z y<=z })
   | <-transitive-right x<=y (y<=z, y/=z) =>
     (x<=y <=∘ y<=z, \lam x=z => run { y/=z, <=-antisymmetric y<=z, rewriteI x=z x<=y })
 }
