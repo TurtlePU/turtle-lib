@@ -1,0 +1,28 @@
+\import Logic
+\import Logic.Meta
+\import Order.Lattice
+\import Paths.Meta
+\import SetTheory.Cartesian
+
+\class UnionSetTheory \extends EmptyPairSetTheory.Ext, Bounded.JoinSemilattice {
+  | union : E -> E
+  | union-prop {X x u : E} : u in X -> x in u -> x in union X
+  | union-meets {X u : E} : u in union X -> ∃ (x : E) (x in X) (u in x)
+
+  | bottom => empty
+  | bottom-univ inE => absurd (empty-prop inE)
+
+  | ∨ x y => union (pair x y)
+  | join-left => union-prop pair-left
+  | join-right => union-prop pair-right
+  | join-univ x<=z y<=z in-x|y => \case union-meets in-x|y \with {
+    | inP (w, w-in-pair, u-in-w) => \case pair-member w-in-pair \with {
+      | byLeft w=x => x<=z (rewriteI w=x u-in-w)
+      | byRight w=y => y<=z (rewriteI w=y u-in-w)
+    }
+  }
+
+  \func bag (xs : Array E) : E \elim xs
+    | nil => empty
+    | a :: l => single a ∨ bag l
+}
