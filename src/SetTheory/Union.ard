@@ -25,4 +25,10 @@
   \func bag (xs : Array E) : E \elim xs
     | nil => empty
     | a :: l => single a ∨ bag l
+
+  \func Ind (X : E) : \Prop => \Sigma (empty in X) (\Pi (u : E) (u in X) -> u ∨ single u in X)
 }
+
+\class InfinitySetTheory \extends UnionSetTheory
+  | infinite : E
+  | infinite-ind : Ind infinite
