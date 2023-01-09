@@ -5,7 +5,7 @@
 \import SetTheory.Signature
 
 \class ExtensionalSetTheory \extends SetTheory, BiorderedSet {
-  | set-ext {X Y : E} : (\Pi (u : E) -> u in X <-> u in Y) -> X = Y
+  | set-ext {X Y : E} : X ~ Y -> X = Y
 
   | <=-antisymmetric x<=y y<=x => set-ext (\lam _ => (x<=y, y<=x))
 

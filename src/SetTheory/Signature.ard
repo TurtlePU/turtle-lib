@@ -1,4 +1,6 @@
+\import Logic
 \import Order.PartialOrder
+\import Relation.Equivalence
 
 \class SetTheory \extends Preorder {
   | \infix 1 in : E -> E -> \Prop
@@ -6,4 +8,14 @@
   | <= x y => \Pi {u : E} (u in x) -> u in y
   | <=-refl i => i
   | <=∘ x<=y y<=z i => y<=z (x<=y i)
+
+  \func \infix 1 meets (X : E) (Phi : E -> \Prop) : \Prop => \Pi {u : E} -> u in X -> Phi u
+
+  \func \infix 1 ~ (X Y : E) : \Prop => \Pi (u : E) -> u in X <-> u in Y
+
+  \func Distinctness : Equivalence E \cowith
+    | ~ => ~
+    | ~-reflexive _ => (\lam i => i, \lam i => i)
+    | ~-symmetric x~y u => ((x~y u).2, (x~y u).1)
+    | ~-transitive x~y y~z u => (\lam i => (y~z _).1 ((x~y _).1 i), \lam i => (x~y _).2 ((y~z _).2 i))
 }

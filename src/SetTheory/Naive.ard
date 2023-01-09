@@ -4,7 +4,7 @@
 \class NaiveSetTheory \extends SetTheory
   | extract (Phi : E -> \Prop) : E
   | extract-left {Phi : E -> \Prop} {x : E} : Phi x -> x in extract Phi
-  | extract-right {Phi : E -> \Prop} {x : E} : x in extract Phi -> Phi x
+  | extract-right {Phi : E -> \Prop} : extract Phi meets Phi
 
 \func russel-set (S : NaiveSetTheory) : S => extract (\lam x => Not (x in x))
 
