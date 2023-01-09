@@ -1,0 +1,35 @@
+\import Logic
+\import Logic.Meta
+\import Meta
+\import Order.Lattice
+\import Paths
+\import Paths.Meta
+\import SetTheory.Separation
+\import SetTheory.Signature
+\import SetTheory.Union
+
+\class PowerSetTheory \extends SetTheory
+  | P : E -> E
+  | power-prop {X Y : E} : Y in P X -> Y <= X
+  | power-meets {X Y : E} : Y <= X -> Y in P X
+
+\class CartesianSetTheory \extends PowerSetTheory, UnionSetTheory, SeparationSetTheory, DistributiveLattice {
+  | ldistr>= u-in-meet => \case union-meets (meet-right u-in-meet) \with {
+    | inP (w, w-in-pair, u-in-w) => \case pair-member w-in-pair \with {
+      | byLeft w=y => join-left (sep-prop (meet-left u-in-meet) (rewriteI w=y u-in-w))
+      | byRight w=z => join-right (sep-prop (meet-left u-in-meet) (rewriteI w=z u-in-w))
+    }
+  }
+
+  \func \infixl 7 [*] (X Y : E) : E => P (P (X ∨ Y)) !| (\lam u => ∃ (x y : E) (x in X) (y in Y) (u = ordered x y))
+
+  \lemma cartesian-meets {X Y u : E} : u in X [*] Y -> ∃ (x y : E) (x in X) (y in Y) (u = ordered x y) => sep-meets
+
+  \lemma cartesian-univ {X Y x y : E} : x in X -> y in Y -> ordered x y in X [*] Y =>
+    \lam x-inX y-inY => sep-prop (power-meets (\lam in-ordered => \case pair-member in-ordered \with {
+      | byLeft u=sx => power-meets (\lam {v} in-u => run {
+        join-left, transportInv (`in X) __ x-inX, single-member, transport (_ in) u=sx in-u
+      })
+      | byRight u=pxy => {?}
+    })) (inP (x, y, x-inX, y-inY, idp))
+}
