@@ -1,0 +1,2 @@
+\class SetTheory (S : \Type)
+  | \infix 1 in : S -> S -> \Prop

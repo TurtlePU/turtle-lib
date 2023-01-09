@@ -1,0 +1,18 @@
+\import Logic
+\import SetTheory.Signature
+
+\class NaiveSetTheory \extends SetTheory
+  | extract (Phi : S -> \Prop) : S
+  | extract-left {Phi : S -> \Prop} {x : S} : Phi x -> x in extract Phi
+  | extract-right {Phi : S -> \Prop} {x : S} : x in extract Phi -> Phi x
+
+\func russel-set (S : NaiveSetTheory) : S => extract (\lam x => Not (x in x))
+
+\lemma russel-paradox (S : NaiveSetTheory)
+  : russel-set S in russel-set S <-> Not (russel-set S in russel-set S) =>
+  (\lam R-in-R => extract-right R-in-R, \lam R-not-in-R => extract-left R-not-in-R)
+
+\lemma naive-set-theory-is-inconsistent (S : NaiveSetTheory) : Empty =>
+  \have | (in->notin, notin->in) => russel-paradox S
+        | R-not-in-R : Not (russel-set S in russel-set S) => \lam R-in-R => in->notin R-in-R R-in-R
+    \in R-not-in-R (notin->in R-not-in-R)
