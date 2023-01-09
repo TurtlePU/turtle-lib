@@ -33,3 +33,6 @@
       | byRight u=pxy => {?}
     })) (inP (x, y, x-inX, y-inY, idp))
 }
+
+\class RegularSetTheory \extends CartesianSetTheory
+  | regular {X : E} : nonEmpty X -> ∃ (u : E) (u in X) (X ∧ u = empty)

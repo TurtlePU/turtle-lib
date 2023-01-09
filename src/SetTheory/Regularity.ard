@@ -1,5 +1,0 @@
-\import Logic.Meta
-\import SetTheory.Power
-
-\class RegularSetTheory \extends CartesianSetTheory
-  | regular {X : E} : nonEmpty X -> ∃ (u : E) (u in X) (X ∧ u = empty)
