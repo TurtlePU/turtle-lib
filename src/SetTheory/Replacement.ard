@@ -1,8 +1,16 @@
 \import Logic.Meta
+\import Paths
 \import SetTheory.Signature
 
-\class ReplacementSetTheory \extends SetTheory
+\class ReplacementSetTheory \extends SetTheory {
   | image {Phi : E -> E -> \Prop} : isFun Phi -> E -> E
   | image-meets {Phi : E -> E -> \Prop} (f : isFun Phi) (X : E)
   : image f X meets (\lam y => ∃ (x : E) (x in X) (Phi x y))
   | image-prop {Phi : E -> E -> \Prop} (f : isFun Phi) (X : E) {x y : E} : x in X -> Phi x y -> y in image f X
+
+  \func image' (f : E -> E) : E -> E => image {\this} {\lam x y => f x = y} (\lam fx=y fx=y' => inv fx=y *> fx=y')
+
+  \lemma image'-meets (f : E -> E) (X : E) : image' f X meets (\lam y => ∃ (x : E) (x in X) (f x = y)) => image-meets _ _
+
+  \lemma image'-prop (f : E -> E) (X : E) {x y : E} : x in X -> f x in image' f X => image-prop _ _ __ idp
+}
