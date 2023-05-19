@@ -1,0 +1,102 @@
+\import Data.Array
+\import Function
+\import Logic
+\import Logic.Meta
+\import Meta
+\import Order.BooleanAlgebra
+\import Order.ComplementedPoset
+\import Order.Lattice
+\import Order.PartialOrder
+\import Order.PseudocomplementedLattice
+\import Paths
+\import Paths.Meta
+\open Bounded (bottom, top)
+\open BooleanAlgebra (bottom-left)
+\open DistributiveLattice (ldistr)
+\open MeetSemilattice (meet-comm)
+
+\record Filter (L : Bounded.MeetSemilattice) (\coerce F : L -> \Prop)
+  | filter-top : F top
+  | filter-meet {a b : L} : F a -> F b -> F (a ∧ b)
+  | filter-up {a b : L} : a <= b -> F a -> F b
+
+\instance FilterLattice (L : Bounded.MeetSemilattice) : Bounded.MeetSemilattice (Filter L)
+  | <= F G => \Pi {x : L} -> F x -> G x
+  | <=-refl => id
+  | <=-transitive F<=G G<=H Fx => G<=H (F<=G Fx)
+  | <=-antisymmetric F<=G G<=F => exts (\lam e => propExt F<=G G<=F)
+  | meet G H => \new Filter {
+    | F x => \Sigma (G x) (H x)
+    | filter-top => (filter-top, filter-top)
+    | filter-meet (Ga, Ha) (Gb, Hb) => (filter-meet Ga Gb, filter-meet Ha Hb)
+    | filter-up a<=b (Ga, Ha) => (filter-up a<=b Ga, filter-up a<=b Ha)
+  }
+  | meet-left => __.1
+  | meet-right => __.2
+  | meet-univ H<=F H<=G Hx => (H<=F Hx, H<=G Hx)
+  | top => \new Filter {
+    | F _ => \Sigma
+    | filter-top => ()
+    | filter-meet _ _ => ()
+    | filter-up _ _ => ()
+  }
+  | top-univ _ => ()
+
+\lemma hasBottom=>hasAll {L : Bounded.Lattice} {F : Filter L} (bot : F bottom) (x : L) : F x =>
+  filter-up Bounded.bottom-univ bot
+
+\lemma hasBottom=>isTrivial {L : Bounded.Lattice} {F : Filter L} (bot : F bottom) : F = top =>
+  exts (\lam x => propExt (\lam _ => ()) (\lam _ => hasBottom=>hasAll bot _))
+
+\func finClosureFilter {L : Bounded.MeetSemilattice} (S : L -> \Prop) : Filter L \cowith
+  | F x => ∃ (y : Subs L S) (finMeet y <= x)
+  | filter-top => inP (nil, <=-refl)
+  | filter-meet (inP (x', x'<=x)) (inP (y', y'<=y)) =>
+    inP (x' ++ y', rewrite ++-meet (MeetSemilattice.meet-monotone x'<=x y'<=y))
+  | filter-up a<=b (inP (x, x<=a)) => inP (x, x<=a <=∘ a<=b)
+  \where {
+    \func Subs (L : \Set) (S : L -> \Prop) => Array (\Sigma (x : L) (S x))
+
+    \func finMeet {L : Bounded.MeetSemilattice} {S : L -> \Prop} (x : Subs L S) : L =>
+      fold (\lam (a, _) b => a ∧ b) top x
+
+    \lemma ++-meet {L : Bounded.MeetSemilattice} {S : L -> \Prop} {x y : Subs L S}
+      : finMeet (x ++ y) = finMeet x ∧ finMeet y \elim x
+      | nil => rewrite Bounded.MeetSemilattice.top-left idp
+      | a :: l => unfold finMeet (rewrite (++-meet, MeetSemilattice.meet-assoc) idp)
+  }
+
+\lemma finClosure-isClosure {L : Bounded.MeetSemilattice} {S : L -> \Prop}
+                            {x : L} (Sx : S x) : finClosureFilter S x =>
+  inP ((x, Sx) :: nil, rewrite Bounded.MeetSemilattice.top-right <=-refl)
+
+\record DisjointFilter \extends Filter {
+  \override L : Bounded.Lattice
+  | filter-disjoint {a b : L} : F (a ∨ b) -> F a || F b
+}
+
+\record UltraFilter \extends DisjointFilter {
+  \override L : BooleanAlgebra
+  | filter-ultra (x : L) : F x || F (comp x)
+  | filter-disjoint {a} {b} Fab => \case filter-ultra a \with {
+    | byLeft Fa => byLeft Fa
+    | byRight Fca => run {
+      byRight, filter-up meet-right, transport F __ (filter-meet Fca Fab),
+      rewrite (ldistr, meet-comm, non-contradiction, bottom-left) idp : comp a ∧ (a ∨ b) = comp a ∧ b
+    }
+  }
+}
+
+\lemma disjoint-ultra {L : BooleanAlgebra} (F : DisjointFilter L) (x : L) : F x || F (comp x) =>
+  filter-disjoint (rewrite BooleanAlgebra.excluded-middle filter-top)
+
+\lemma ultra-isMax {L : BooleanAlgebra} (F : UltraFilter L) (F' : Filter L) (nonTriv : Not (F' bottom))
+                   (F<=F' : F <= F') : F = F' =>
+  <=-antisymmetric F<=F' (\lam {x} F'x => \case filter-ultra {F} x \with {
+    | byLeft Fx => Fx
+    | byRight Fcx => run {
+      absurd, nonTriv,
+      transport F' (non-contradiction x),
+      filter-meet F'x, F<=F' Fcx
+    }
+  })

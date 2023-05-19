@@ -3,3 +3,11 @@
 \import SetTheory.Union
 
 \class ZF \extends RegularSetTheory, ReplacementSetTheory, InfinitySetTheory
+
+\class ZFC \extends ZF {
+  | choice {X x : E} : x in X -> nonEmpty x -> E
+  | choice-prop {X x : E} {x-inX : x in X} {nx : nonEmpty x} : choice x-inX nx in x
+
+  \lemma choice-range {X x : E} {x-inX : x in X} {nx : nonEmpty x} : choice x-inX nx in union X =>
+    union-prop x-inX choice-prop
+}

@@ -1,0 +1,47 @@
+\import Category.Functor
+\import Data.Maybe
+\import Data.Or
+\import Function
+\import Logic
+\import Logic.FirstOrder.Signature
+\import Logic.FirstOrder.Structure
+\import Logic.FirstOrder.Structure.Category
+\import Logic.FirstOrder.Term
+\import Logic.Meta
+\import Set.Category
+
+\data Formula (S : Signature) (X : \Set)
+  | \infix 5 :? (p : S.Pred) (arity (inl p) -> Term S X)
+  | \infix 5 := (l r : Term S X)
+  | \infix 2 :-> (l r : Formula S X)
+  | \infix 3 :| (l r : Formula S X)
+  | \infix 4 :& (l r : Formula S X)
+  | :- (Formula S X)
+  | :forall (Formula S (Maybe X))
+  | :exists (Formula S (Maybe X))
+
+\instance FormulaFunctor (S : Signature) : Functor SetCat SetCat (Formula S)
+  | Func => {?}
+  | Func-id => {?}
+  | Func-o => {?}
+
+\func \infix 4 ?: {A B : \Set} (b : B) (f : A -> B) (m : Maybe A) : B \elim m
+  | nothing => b
+  | just a => f a
+
+\func \infix 3 prop {S : Signature} {X : \Set} {A : Structure S} (v : X -> A) (f : Formula S X) : \Prop \elim f
+  | p :? x => p ? (\lam i => v eval x i)
+  | l := t => v eval l = v eval t
+  | l :-> f => v prop l -> v prop f
+  | l :| f => v prop l || v prop f
+  | l :& f => \Sigma (v prop l) (v prop f)
+  | :- f => Not (v prop f)
+  | :forall f => ∀ (x : A) (x ?: v prop f)
+  | :exists f => ∃ (x : A) (x ?: v prop f)
+
+\lemma stable-iso {S : Signature} {A B : Structure S} (xi : Isomorphism S A B)
+                  {X : \Set} (f : Formula S X) (v : X -> A) : v prop f <-> (xi o v) prop f => {?}
+
+\type isSatisfiable {S : Signature} {X : \Set} (f : Formula S X) : \Prop => ∃ (A : Structure S) (v : X -> A) (v prop f)
+
+\type isUniversal {S : Signature} {X : \Set} (f : Formula S X) : \Prop => ∀ (A : Structure S) (v : X -> A) (v prop f)

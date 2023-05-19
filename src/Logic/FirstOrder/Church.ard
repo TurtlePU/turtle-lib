@@ -1,0 +1,19 @@
+\import Data.Or
+\import Logic
+\import Logic.FirstOrder.Formula
+\import Logic.FirstOrder.Signature
+\import Logic.Meta
+\import Set
+
+\func Arithmetic : Signature \cowith
+  | Pred => Empty
+  | Fun => ArithOps
+  | arity => \case \elim __ \with {
+    | inl ()
+    | inr _ => Fin 2
+  }
+  \where {
+    \data ArithOps | :+ | :*
+  }
+
+\lemma Church : Not (∀ (f : Formula Arithmetic Nat) (Dec (isSatisfiable f))) => {?}

@@ -1,0 +1,49 @@
+\import Category.Functor
+\import Data.Maybe
+\import Logic
+\import Logic.FirstOrder.Formula
+\import Logic.FirstOrder.Signature
+\import Logic.FirstOrder.Structure
+\import Logic.FirstOrder.Theory
+\import Logic.Meta
+\import Meta
+
+\func closure {S : Signature} (l : \Pi {A : \Set} -> Formula S (Maybe A) -> Formula S A)
+              {n : Nat} (f : Formula S (Fin n)) : Sentence S \elim n
+  | 0 => Func {FormulaFunctor S} (\case __ : Fin 0) f
+  | suc n => run {
+    closure l, l, Func {FormulaFunctor S} __ f,
+    \case __ : Fin (suc n) \with {
+      | 0 => nothing
+      | suc x => just x
+    }
+  }
+
+\func universalClosure {S : Signature} {n : Nat} (f : Formula S (Fin n)) : Sentence S => closure :forall f
+
+\func existentialClosure {S : Signature} {n : Nat} (f : Formula S (Fin n)) : Sentence S => closure :exists f
+
+\type \infix 2 |= {S : Signature} (T : Theory S) {n : Nat} (f : Formula S (Fin n)) : \Prop =>
+  ∀ (A : Structure S) (A ||- T -> A sat universalClosure f)
+
+\func emptyTheory (S : Signature) : Theory S \cowith
+  | I => Empty
+  | f => absurd
+
+\func empty|=_<->_isUniversal {S : Signature} {n : Nat} (f : Formula S (Fin n))
+  : emptyTheory S |= f <-> f `isUniversal =>
+  (\lam |=f _ => satClosure->prop (|=f _ (\case __)), \lam uni A _ => prop->satClosure (uni A))
+  \where {
+    \lemma satClosure->prop {S : Signature} {A : Structure S} {n : Nat} {f : Formula S (Fin n)}
+                            (sat : A sat closure :forall f) (v : Fin n -> A) : v prop f \elim n
+      | 0 => {?}
+      | suc n => {?}
+
+    \lemma prop->satClosure {S : Signature} {A : Structure S} {n : Nat} {f : Formula S (Fin n)}
+                            (prop : ∀ (v : Fin n -> A) (v prop f)) : A sat closure :forall f \elim n
+      | 0 => {?}
+      | suc n => {?}
+  }
+
+\type \infix 2 === {S : Signature} {n : Nat} (f g : Formula S (Fin n)) : \Prop =>
+  emptyTheory S |= (f :-> g) :& (g :-> f)

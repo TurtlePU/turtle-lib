@@ -1,0 +1,6 @@
+\import Data.Or
+\import Logic.FirstOrder.Signature
+
+\class Structure (S : Signature) (\classifying C : \Set)
+  | \infix 2 ! (f : S.Fun) : (arity (inr f) -> C) -> C
+  | \infix 2 ? (p : S.Pred) : (arity (inl p) -> C) -> \Prop

@@ -1,0 +1,6 @@
+\import Data.Or
+
+\record Signature
+  | Pred : \Set
+  | Fun : \Set
+  | arity : Pred `Or` Fun -> \Set

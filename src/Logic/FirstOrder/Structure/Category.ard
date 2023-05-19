@@ -1,0 +1,89 @@
+\import Category \hiding (∘, id)
+\import Data.Or
+\import Equiv (QEquiv)
+\import Equiv.Univalence (QEquiv-to-=)
+\import Function
+\import Logic.FirstOrder.Signature
+\import Logic.FirstOrder.Structure
+\import Paths
+\import Paths.Meta
+
+\record StructureHom (S : Signature) (Dom Cod : Structure S)
+  | \coerce func : Dom -> Cod
+  | func-? {p : S.Pred} (x : arity (inl p) -> Dom) : p ? x -> p ? func o x
+  | func-! {f : S.Fun} (x : arity (inr f) -> Dom) : func (f ! x) = f ! func o x
+
+\instance StructurePrecat (S : Signature) : Precat (Structure S)
+  | Hom => StructureHom S
+  | id => Id
+  | o => Comp
+  | id-left => idp
+  | id-right => idp
+  | o-assoc => idp
+  \where {
+    \func Id {S : Signature} (X : Structure S) : Isomorphism S X X \cowith
+      | func => id
+      | func-? _ => id
+      | func-! _ => idp
+      | func-inj => id
+      | func-?-back _ => id
+      | invert => id
+      | func-inv => idp
+
+    \func Comp {S : Signature} {X Y Z : Structure S} (f : StructureHom S Y Z) (g : StructureHom S X Y)
+      : StructureHom S X Z \cowith
+      | func => f o g
+      | func-? _ => func-? _ o func-? _
+      | func-! _ => pmap f (func-! _) *> func-! _
+  }
+
+\record Embedding \extends StructureHom {
+  | func-inj {x y : Dom} : func x = func y -> x = y
+  | func-?-back {p : S.Pred} (x : arity (inl p) -> Dom) : p ? func o x -> p ? x
+
+  \lemma func-?-eq {p : S.Pred} {x : arity (inl p) -> Dom} : p ? x = p ? func o x => ext (func-? _, func-?-back _)
+}
+
+\record Isomorphism \extends Embedding {
+  | invert : Cod -> Dom
+  | func-inv {y : Cod} : func (invert y) = y
+
+  \lemma cut {E : \Set} {x : E -> Cod} : func o invert o x = x => ext (\lam _ => func-inv)
+
+  \func back : Isomorphism S Cod Dom \cowith
+    | func => invert
+    | func-? {p} _ px => func-?-back _ (rewrite cut px)
+    | func-! _ => func-inj (rewrite (func-inv, func-!, cut) idp)
+    | func-inj ix=iy => inv func-inv *> pmap func ix=iy *> func-inv
+    | func-?-back {p} _ pix => transport (p ?) cut (func-? _ pix)
+    | invert => func
+    | func-inv => func-inj func-inv
+
+  \func toQEquiv : QEquiv {Dom} {Cod} \cowith
+    | f => func
+    | ret => invert
+    | ret_f _ => func-inv {back}
+    | f_sec _ => func-inv
+
+  \func to-= : Dom = Cod => exts (QEquiv-to-= toQEquiv, \lam _ _ => func-! _, \lam _ _ => func-?-eq)
+} \where {
+  \func fromIso {S : Signature} {X Y : Structure S} (i : Iso {StructurePrecat S} {X} {Y})
+    : Isomorphism S X Y \cowith
+    | StructureHom => i.f
+    | func-inj {x} {y} ix=iy =>
+      inv (pmap (\lam (f : StructureHom _ _ _) => f x) i.inv_f)
+        *> pmap i.inv ix=iy *> pmap (\lam (f : StructureHom _ _ _) => f y) i.inv_f
+    | func-?-back {p} x pix =>
+      transport (p ?) (ext (\lam _ => pmap (\lam (f : StructureHom _ _ _) => f _) i.inv_f))
+          (func-? {i.inv} (i.f o x) pix)
+    | invert => func {i.inv}
+    | func-inv => pmap (\lam (f : StructureHom _ _ _) => f _) i.f_inv
+}
+
+\instance StructureCat (S : Signature) : Cat (Structure S)
+  | Precat => StructurePrecat S
+  | univalence => \new QEquiv {
+    | ret i => Isomorphism.to-= {Isomorphism.fromIso i}
+    | ret_f a=b => {?}
+    | f_sec => {?}
+  }

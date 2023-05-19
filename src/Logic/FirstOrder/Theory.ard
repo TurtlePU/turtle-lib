@@ -1,0 +1,19 @@
+\import Logic
+\import Logic.FirstOrder.Formula
+\import Logic.FirstOrder.Signature
+\import Logic.FirstOrder.Structure
+\import Logic.Meta
+
+\type Sentence (S : Signature) => Formula S Empty
+
+\func \infix 3 sat {S : Signature} (A : Structure S) (f : Sentence S) : \Prop => absurd {A} prop f
+
+\record Theory (S : Signature) (I : \Set) (\coerce f : I -> Sentence S)
+
+\func \infix 3 ||- {S : Signature} (A : Structure S) (T : Theory S) : \Prop => ∀ (i : T.I) (A sat T i)
+
+\func Th {S : Signature} (A : Structure S) : Theory S \cowith
+  | I => \Sigma (s : Sentence S) (A sat s)
+  | f => __.1
+
+\lemma Th-sat {S : Signature} (A : Structure S) : A ||- Th A => __.2

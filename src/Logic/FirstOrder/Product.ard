@@ -1,0 +1,21 @@
+\import Logic.FirstOrder.Signature
+\import Logic.FirstOrder.Structure
+\import Logic.FirstOrder.Term
+\import Logic.Meta
+\import Paths
+\import Paths.Meta
+
+\record DirectProduct (S : Signature) {I : \Set} (A : I -> Structure S)
+  | \coerce a (i : I) : A i
+  \where \use \coerce fromCoords {S : Signature} {I : \Set} {A : I -> Structure S} (a : \Pi (i : I) -> A i)
+    : DirectProduct S A \cowith | a => a
+
+\instance ProductStructure (S : Signature) {I : \Set} (A : I -> Structure S) : Structure S (DirectProduct S A)
+  | ! f a => DirectProduct.fromCoords (\lam i => f ! (\lam j => a j i))
+  | ? p a => ∀ (i : I) (p ? (\lam j => a j i))
+
+\lemma term-! {S : Signature} {X : \Set} (t : Term S X)
+              {I : \Set} {A : I -> Structure S} (a : X -> DirectProduct S A)
+  : a eval t = DirectProduct.fromCoords (\lam i => (\lam x => a x i) eval t) \elim t
+  | :x _ => idp
+  | _ :! _ => exts (\lam _ => pmap (_ !) (ext (\lam x => rewrite term-! idp)))

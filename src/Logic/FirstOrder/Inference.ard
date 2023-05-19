@@ -1,0 +1,50 @@
+\import Data.Or
+\import Logic
+\import Logic.FirstOrder.Formula
+\import Logic.FirstOrder.Semantics
+\import Logic.FirstOrder.Signature
+\import Logic.FirstOrder.Theory
+\import Paths
+
+\func \infix 2 ++ {S : Signature} (T T' : Theory S) : Theory S \cowith
+  | I => T.I `Or` T'.I
+  | f => \case \elim __ \with {
+    | inl i => T i
+    | inr j => T' j
+  }
+
+\func Hilbert (S : Signature) : Theory S \cowith
+  | I => Fin 11
+  | f => \case \elim __ \with {
+    | 0 => {?}
+    | 1 => {?}
+    | 2 => {?}
+    | 3 => {?}
+    | 4 => {?}
+    | 5 => {?}
+    | 6 => {?}
+    | 7 => {?}
+    | 8 => {?}
+    | 9 => {?}
+    | 10 => {?}
+  }
+
+\data \infix 1 MP|- {S : Signature} (T : Theory S) {X : \Set} (f : Formula S X)
+  | AX (e : X = Empty) (i : T.I) (transport (Formula S) e f = T i)
+  | MP (g : Formula S X) (T MP|- g) (T MP|- g :-> f)
+
+\func \infix 1 |- {S : Signature} (T : Theory S) {X : \Set} (f : Formula S X) : \Set => Hilbert S ++ T MP|- f
+
+\func refutableIn {S : Signature} {X : \Set} (f : Formula S X) (T : Theory S) : \Set => T |- :- f
+
+\func independentFrom {S : Signature} {X : \Set} (f : Formula S X) (T : Theory S) : \Set =>
+  \Sigma (Not (T |- f)) (Not (T |- :- f))
+
+\lemma |-=>|= {S : Signature} {n : Nat} {T : Theory S} {f : Formula S (Fin n)}
+              (T|-f : T |- f) : T |= f \elim T|-f
+  | AX e (inl h) p => {?}
+  | AX e (inr b) p => {?}
+  | MP g T|-g T|-g->f => \lam A A||-T => {?}
+
+\lemma |=_=>|- {S : Signature} {n : Nat} {T : Theory S} {f : Formula S (Fin n)}
+               (T|=f : T |= f) : T |- f => {?}

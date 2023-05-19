@@ -1,0 +1,11 @@
+\import Data.Or
+\import Logic.FirstOrder.Signature
+\import Logic.FirstOrder.Structure
+
+\data Term (S : Signature) (X : \Set)
+  | :x X
+  | \infix 2 :! (f : S.Fun) (arity (inr f) -> Term S X)
+
+\func \infix 2 eval {X : \Set} {S : Signature} {A : Structure S} (v : X -> A) (t : Term S X) : A \elim t
+  | :x x => v x
+  | f :! x => f ! (\lam i => v eval x i)
