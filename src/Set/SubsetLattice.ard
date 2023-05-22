@@ -1,0 +1,28 @@
+\import Function
+\import Logic
+\import Order.Lattice
+\import Paths.Meta
+
+\record Subset (A : \Set) (\coerce S : A -> \Prop)
+
+\instance SubsetLattice (A : \Set) : Bounded.DistributiveLattice (Subset A)
+  | <= S T => \Pi {x : A} -> S x -> T x
+  | <=-refl => id
+  | <=-transitive S<=T T<=U Sx => T<=U (S<=T Sx)
+  | <=-antisymmetric S<=T T<=S => exts (\lam _ => propExt S<=T T<=S)
+  | meet S T => \new Subset _ (\lam x => \Sigma (S x) (T x))
+  | meet-left => __.1
+  | meet-right => __.2
+  | meet-univ S<=T S<=U Sx => (S<=T Sx, S<=U Sx)
+  | join S T => \new Subset _ (\lam x => S x || T x)
+  | join-left => byLeft
+  | join-right => byRight
+  | join-univ S<=T U<=T => \case \elim __ \with {
+    | byLeft Sx => S<=T Sx
+    | byRight Ux => U<=T Ux
+  }
+  | top => \new Subset _ (\lam _ => \Sigma)
+  | top-univ _ => ()
+  | bottom => \new Subset _ (\lam _ => Empty)
+  | bottom-univ => absurd
+  | ldistr>= (Sx, Tx|Ux) => ||.map (Sx, __) (Sx, __) Tx|Ux

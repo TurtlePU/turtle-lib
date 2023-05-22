@@ -1,0 +1,43 @@
+\import Order.BooleanAlgebra
+\import Order.ComplementedPoset
+\import Order.Lattice
+\import Order.PartialOrder
+\import Order.PseudocomplementedLattice
+\import Paths
+\import Paths.Meta
+
+\record CompletePair (A : Bounded.Lattice) (\coerce x : A) (y : A)
+  | is-covering : x ∨ y = A.top
+  | is-disjoint : x ∧ y = A.bottom
+
+\instance CompleteLattice (A : Bounded.Lattice) : PseudocomplementedLattice (CompletePair A)
+  | <= (x, y, _, _) (x', y', _, _) => \Sigma (x <= x') (y' <= y)
+  | <=-refl => (<=-refl, <=-refl)
+  | <=-transitive (x<=x', y'<=y) (x'<=x'', y''<=y') => (x<=x' <=∘ x'<=x'', y''<=y' <=∘ y'<=y)
+  | <=-antisymmetric (x<=x', y'<=y) (x'<=x, y<=y') => ext (<=-antisymmetric x<=x' x'<=x, <=-antisymmetric y<=y' y'<=y)
+  | meet (x, y, _, _) (x', y', _, _) => \new CompletePair _ (x ∧ x') (y ∨ y') {?} {?}
+  | meet-left => (meet-left, join-left)
+  | meet-right => (meet-right, join-right)
+  | meet-univ (x''<=x, y<=y'') (x''<=x', y'<=y'') => (meet-univ x''<=x x''<=x', join-univ y<=y'' y'<=y'')
+  | join (x, y, _, _) (x', y', _, _) => \new CompletePair _ (x ∨ x') (y ∧ y') {?} {?}
+  | join-left => (join-left, meet-left)
+  | join-right => (join-right, meet-right)
+  | join-univ (x<=x'', y''<=y) (x'<=x'', y''<=y') => (join-univ x<=x'' x'<=x'', meet-univ y''<=y y''<=y')
+  | bottom => \new CompletePair _ A.bottom A.top BooleanAlgebra.bottom-left A.top-right
+  | bottom-univ => (A.bottom-univ, A.top-univ)
+  | comp (x, y, x|y=1, xy=0) => \new CompletePair _ y x (A.join-comm *> x|y=1) (A.meet-comm *> xy=0)
+  | non-contradiction (x, y, x|y=1, xy=0) => exts (xy=0, A.join-comm *> x|y=1)
+  | comp-univ eq => ({?}, {?})
+
+\instance CompleteAlgebra (A : Bounded.DistributiveLattice) : BooleanAlgebra (CompletePair A)
+  | Poset => CompleteLattice A
+  | ∧ => ∧ {CompleteLattice A}
+  | meet-left => meet-left {CompleteLattice A}
+  | meet-right => meet-right {CompleteLattice A}
+  | meet-univ => meet-univ {CompleteLattice A}
+  | bottom => Bounded.bottom {CompleteLattice A}
+  | bottom-univ => Bounded.bottom-univ {CompleteLattice A}
+  | comp => comp {CompleteLattice A}
+  | <=-comp (x<=x', y'<=y) => (y'<=y, x<=x')
+  | ldistr>= => (ldistr>=, {?})
+  | comp-inv _ => idp
