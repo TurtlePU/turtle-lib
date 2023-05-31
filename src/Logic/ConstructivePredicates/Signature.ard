@@ -1,0 +1,5 @@
+\record Signature
+  | Fun : \Type
+  | fun-arity : Fun -> Nat
+  | Pred : \Type
+  | pred-arity : Pred -> Nat

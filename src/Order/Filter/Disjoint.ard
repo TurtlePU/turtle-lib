@@ -1,0 +1,8 @@
+\import Logic
+\import Order.Filter
+\import Order.Lattice
+
+\record DisjointFilter \extends Filter {
+  \override Filter.L : Bounded.Lattice
+  | filter-disjoint {a b : Filter.L} : Filter.F (a ∨ b) -> Filter.F a || Filter.F b
+}

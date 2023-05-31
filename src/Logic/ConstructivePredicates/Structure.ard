@@ -1,0 +1,5 @@
+\import Logic.ConstructivePredicates.Signature
+
+\class Structure (S : Signature) (\classifying A : \Set)
+  | \infix 5 ! (f : S.Fun) : Array A (fun-arity f) -> A
+  | \infix 4 ? (p : S.Pred) : Array A (pred-arity p) -> \Prop

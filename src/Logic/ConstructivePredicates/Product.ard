@@ -1,0 +1,45 @@
+\import Logic
+\import Logic.ConstructivePredicates.Signature
+\import Logic.ConstructivePredicates.Structure
+\import Logic.Meta
+\import Order.Filter
+\import Paths
+\import Paths.Meta
+\import Relation.Equivalence
+\import Set.SubsetLattice
+
+\record Product {S : Signature} {I : \Type} (A : I -> Structure S) (\coerce a : \Pi (i : I) -> A i)
+
+\instance ProductStructure {S : Signature} {I : \Type} (A : I -> Structure S) : Structure S (Product A)
+  | ! f a => \new Product _ (\lam i => f ! (\lam j => a j i))
+  | ? p a => ∀ (i : I) (p ? (\lam j => a j i))
+
+\func IFilter (I : \Type) : \Type => Filter (SubsetLattice I)
+
+\instance FilterEquivalence {S : Signature} {I : \Type} (A : I -> Structure S) (F : IFilter I)
+: Equivalence (Product A)
+  | ~ a b => F (\lam i => a i = b i)
+  | ~-reflexive => transport F (ext (\lam i => propExt (\lam _ => idp) (\lam _ => ()))) filter-top
+  | ~-symmetric => transport F (ext (\lam i => propExt inv inv))
+  | ~-transitive {a} {b} {c} aFb bFc =>
+    filter-up (\lam {i} (p : \Sigma (a i = b i) (b i = c i)) => p.1 *> p.2) (filter-meet aFb bFc)
+
+\func FilteredProduct {S : Signature} {I : \Type} (A : I -> Structure S) (F : IFilter I) =>
+  Quotient (~ {FilterEquivalence A F})
+
+\instance FilteredStructure {S : Signature} {I : \Type} (A : I -> Structure S) (F : IFilter I)
+: Structure S (FilteredProduct A F)
+  | ! f a => Quotient.liftArrayFun (__ ~ __) (\lam _ => ~-reflexive) (~) (f ! {ProductStructure A})
+      (\lam l l' p => filter-up (\lam {i} q => pmap (f !) (exts (\lam j => {?}))) (F.filter-fin-meet {fun-arity f} {\lam j i => l j i = l' j i} p)) a
+  | ? p a =>
+    \case Quotient.liftArrayFun (__ ~ __) (\lam _ => ~-reflexive) (=)
+              (\lam (a' : Array (Product A) (pred-arity p)) => F (\lam i => p ? (\lam j => a' j i)))
+              (\lam l l' p => propExt
+                  (\lam f => {?})
+                  (\lam f => {?})
+              )
+              a
+    \with {
+      | in~ P => P
+      | ~-equiv x y p => p
+    }

@@ -1,0 +1,39 @@
+\import Logic
+\import Meta
+\import Order.BooleanAlgebra
+\import Order.ComplementedPoset
+\import Order.Filter
+\import Order.Filter.Disjoint
+\import Order.Lattice
+\import Order.PartialOrder
+\import Order.PseudocomplementedLattice
+\import Paths
+\import Paths.Meta
+\open DistributiveLattice (ldistr)
+\open BooleanAlgebra (bottom-left)
+
+\record UltraFilter \extends DisjointFilter {
+  \override L : BooleanAlgebra
+  | filter-ultra (x : L) : F x || F (comp x)
+  | filter-disjoint {a} {b} Fab => \case filter-ultra a \with {
+    | byLeft Fa => byLeft Fa
+    | byRight Fca => run {
+      byRight, filter-up L.meet-right, transport F __ (filter-meet Fca Fab),
+      rewrite (ldistr, L.meet-comm, non-contradiction, bottom-left) idp : comp a ∧ (a ∨ b) = comp a ∧ b
+    }
+  }
+}
+
+\lemma disjoint-ultra {L : BooleanAlgebra} (F : DisjointFilter L) (x : L) : F x || F (comp x) =>
+  filter-disjoint (rewrite BooleanAlgebra.excluded-middle filter-top)
+
+\lemma ultra-isMax {L : BooleanAlgebra} (F : UltraFilter L) (F' : Filter L) (nonTriv : Not (F' L.bottom))
+                   (F<=F' : F <= F') : F = F' =>
+  <=-antisymmetric F<=F' (\lam {x} F'x => \case filter-ultra {F} x \with {
+    | byLeft Fx => Fx
+    | byRight Fcx => run {
+      absurd, nonTriv,
+      transport F' (non-contradiction x),
+      filter-meet F'x, F<=F' Fcx
+    }
+  })

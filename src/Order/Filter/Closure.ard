@@ -1,0 +1,31 @@
+\import Data.Array
+\import Logic
+\import Logic.Meta
+\import Meta
+\import Order.Filter
+\import Order.Filter.Disjoint
+\import Order.Lattice
+\import Order.PartialOrder
+\import Paths.Meta
+
+\func finClosureFilter {L : Bounded.MeetSemilattice} (S : L -> \Prop) : Filter L \cowith
+  | F x => ∃ (y : Subs L S) (finMeet y <= x)
+  | filter-top => inP (nil, <=-refl)
+  | filter-meet (inP (x', x'<=x)) (inP (y', y'<=y)) =>
+    inP (x' ++ y', rewrite ++-meet (L.meet-monotone x'<=x y'<=y))
+  | filter-up a<=b (inP (x, x<=a)) => inP (x, x<=a <=∘ a<=b)
+  \where {
+    \func Subs (L : \Set) (S : L -> \Prop) => Array (\Sigma (x : L) (S x))
+
+    \func finMeet {L : Bounded.MeetSemilattice} {S : L -> \Prop} (x : Subs L S) : L =>
+      fold (\lam (a, _) b => a ∧ b) L.top x
+
+    \lemma ++-meet {L : Bounded.MeetSemilattice} {S : L -> \Prop} {x y : Subs L S}
+      : finMeet (x ++ y) = finMeet x ∧ finMeet y \elim x
+      | nil => rewrite L.top-left idp
+      | a :: l => unfold finMeet (rewrite (++-meet, L.meet-assoc) idp)
+  }
+
+\lemma finClosure-isClosure {L : Bounded.MeetSemilattice} {S : L -> \Prop}
+                            {x : L} (Sx : S x) : finClosureFilter S x =>
+  inP ((x, Sx) :: nil, rewrite L.top-right <=-refl)
