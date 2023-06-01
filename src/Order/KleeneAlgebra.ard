@@ -1,0 +1,15 @@
+\import Algebra.Semiring
+\import Order.BooleanAlgebra
+\import Order.Lattice
+
+\class KleeneAlgebra \extends Semiring, Bounded.JoinSemilattice
+  | ^ : E -> E
+  | ^-left {e : E} : 1 + ^ e * e <= ^ e
+  | ^-right {e : E} : 1 + e * ^ e <= ^ e
+  | ^-left-univ {e x : E} : e * x <= x -> ^ e * x <= x
+  | ^-right-univ {e x : E} : x * e <= x -> x * ^ e <= x
+  | zro => bottom
+  | + => ∨
+  | zro-left => BooleanAlgebra.bottom-left
+  | +-assoc => join-assoc
+  | +-comm => join-comm

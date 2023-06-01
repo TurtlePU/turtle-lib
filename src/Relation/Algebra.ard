@@ -1,0 +1,73 @@
+\import Function
+\import Logic
+\import Logic.Meta
+\import Order.KleeneAlgebra
+\import Paths.Meta
+\import Relation.Truncated
+
+\instance RelationAlgebra (E : \Set) : KleeneAlgebra (E -> E -> \Prop)
+  | ide => =
+  | * Q R x y => ∃ (z : E) (x `Q` z) (z `R` y)
+  | ide-left => exts (\lam _ _ => propExt (\lam (inP (_, idp, r)) => r) (\lam r => inP (_, idp, r)))
+  | ide-right => exts (\lam _ _ => propExt (\lam (inP (_, r, idp)) => r) (\lam r => inP (_, r, idp)))
+  | *-assoc => exts (\lam _ _ => propExt
+      (\lam (inP (_, inP (_, a, b), c)) => inP (_, a, inP (_, b, c)))
+      (\lam (inP (_, a, inP (_, b, c))) => inP (_, inP (_, a, b), c)))
+  | <= Q R => ∀ {x y : E} (x `Q` y -> x `R` y)
+  | <=-refl => id
+  | <=-transitive P<=Q Q<=R {_} {_} => Q<=R o P<=Q
+  | <=-antisymmetric P<=Q Q<=P => ext (\lam _ _ => propExt P<=Q Q<=P)
+  | join Q R x y => x `Q` y || x `R` y
+  | join-left => byLeft
+  | join-right => byRight
+  | join-univ P<=Q R<=Q => \case \elim __ \with {
+    | byLeft xPy => P<=Q xPy
+    | byRight xRy => R<=Q xRy
+  }
+  | bottom _ _ => Empty
+  | bottom-univ => absurd
+  | ldistr => exts (\lam _ _ => propExt
+      (\lam (inP (_, a, b)) => ||.map (\lam b => inP (_, a, b)) (\lam b => inP (_, a, b)) b)
+      (\case \elim __ \with {
+        | byLeft (inP (_, a, b)) => inP (_, a, byLeft b)
+        | byRight (inP (_, a, b)) => inP (_, a, byRight b)
+      }))
+  | rdistr => exts (\lam _ _ => propExt
+      (\lam (inP (_, a, b)) => ||.map (\lam a => inP (_, a, b)) (\lam a => inP (_, a, b)) a)
+      (\case \elim __ \with {
+        | byLeft (inP (_, a, b)) => inP (_, byLeft a, b)
+        | byRight (inP (_, a, b)) => inP (_, byRight a, b)
+      }))
+  | zro_*-left => exts (\lam _ _ => propExt (\lam (inP (_, e, _)) => e) absurd)
+  | zro_*-right => exts (\lam _ _ => propExt (\lam (inP (_, _, e)) => e) absurd)
+  | ^ => transitive-refl-closure
+  | ^-left => \case \elim __ \with {
+    | byLeft eq => trc-direct eq
+    | byRight (inP (_, t, r)) => cons-right t r
+  }
+  | ^-right => \case \elim __ \with {
+    | byLeft eq => trc-direct eq
+    | byRight (inP (_, r, t)) => trc-connect _ r t
+  }
+  | ^-left-univ {Q} {R} QR<=R (inP (_, tq, r)) => consume-right {E} {Q} {R} (\lam q r => QR<=R (inP (_, q, r))) tq r
+  | ^-right-univ {R} {Q} RQ<=Q (inP (_, q, tr)) => consume-left {E} {Q} {R} (\lam q r => RQ<=Q (inP (_, q, r))) q tr
+  \where {
+    \lemma cons-right {E : \Set} {R : E -> E -> \Prop} {x y z : E}
+                      (t : transitive-refl-closure R x z) (r : z `R` y)
+      : transitive-refl-closure R x y =>
+      consume-right {E} {R} {transitive-refl-closure R} (trc-connect _ __ __) t (trc-unary {E} {R} r)
+
+    \lemma consume-right {E : \Set} {Q R : E -> E -> \Prop} {x y z : E}
+                         (eat : \Pi {x y z : E} -> x `Q` z -> z `R` y -> x `R` y)
+                         (t : transitive-refl-closure Q x z) (r : z `R` y)
+      : x `R` y \elim t
+      | trc-direct idp => r
+      | trc-connect _ q t => eat q (consume-right eat t r)
+
+    \lemma consume-left {E : \Set} {Q R : E -> E -> \Prop} {x y z : E}
+                        (eat : \Pi {x y z : E} -> x `Q` z -> z `R` y -> x `Q` y)
+                        (q : x `Q` y) (t : transitive-refl-closure R y z)
+      : x `Q` z \elim t
+      | trc-direct idp => q
+      | trc-connect _ r t => consume-left eat (eat q r) t
+  }
