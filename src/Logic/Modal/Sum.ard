@@ -1,0 +1,29 @@
+\import Function
+\import Logic
+\import Logic.Modal.Kripke
+\import Logic.Modal.Semantics
+\import Logic.Modal.Syntax
+\import Paths
+
+\record FrameSum {I : \Set} (F : I -> Frame) (i : I) (f : F i)
+
+\instance SumFrame {I : \Set} (F : I -> Frame) : Frame (FrameSum F)
+  | R (i, fi) (j, fj) => \Sigma (p : i = j) (transport (F __) p fi `R` fj)
+
+\instance SumModel {I : \Set} {P : \Type} (F : I -> Model' P) : Model (FrameSum F) { | P => P }
+  | Frame => SumFrame F
+  | V p (_, f) => V p f
+
+\lemma sum-sat {I : \Set} {P : \Type} {F : I -> Model' P} {i : I} {f : F i} {A : ML P}
+  : (F i, f) |= A <-> (SumModel F, \new FrameSum _ i f) |= A \elim A
+  | prop p => (id, id)
+  | _|_ => (id, id)
+  | h --> c => (\lam _x _x1 => sum-sat.1 (_x (sum-sat.2 _x1)),
+                \lam _x _x1 => sum-sat.2 (_x (sum-sat.1 _x1)))
+  | l :&&: r => (\lam (a, b) => (sum-sat.1 a, sum-sat.1 b), \lam (a, b) => (sum-sat.2 a, sum-sat.2 b))
+  | l :||: r => (||.map sum-sat.1 sum-sat.1, ||.map sum-sat.2 sum-sat.2)
+  | [_] A => (\lam _x y r => \case \elim y, \elim r \with {
+    | (_, _), (idp, r) => sum-sat.1 (_x _ r)
+  }, \lam _x _ r => sum-sat.2 (_x _ (idp, r)))
+  | <> A => (\lam (inP (y, r, v)) => inP (\new FrameSum _ i y, (idp, r), sum-sat.1 v),
+             \lam (inP ((_, y), (idp, r), v)) => inP (y, r, sum-sat.2 v))
