@@ -1,0 +1,29 @@
+\import Function
+\import Logic
+\import Logic.Meta
+\import Logic.Modal.Kripke
+\import Logic.Modal.Semantics
+\import Logic.Modal.Syntax
+\import Paths.Meta
+
+\record FrameHom (Dom Cod : Frame) (\coerce f : Dom -> Cod)
+  | f-monotone {x y : Dom} : x `R` y -> f x `R` f y
+  | f-lifting {x : Dom} {u : Cod} : f x `R` u -> ∃ (y : Dom) (f y = u) (x `R` y)
+
+\func \infixl 4 << {F G : Frame} (f : FrameHom F G) {P : \Type} (V : Valuation P G) : Valuation P F =>
+  \lam p w => V p (f w)
+
+\lemma hom-lemma {F G : Frame} {f : FrameHom F G} {P : \Type} {V : Valuation P G} {A : ML P} {x : F}
+  : (Model.from F (f << V), x) |= A <-> (Model.from G V, f x) |= A \elim A
+  | prop p => (id, id)
+  | _|_ => (id, id)
+  | h --> c => (\lam _x _x1 => hom-lemma.1 (_x (hom-lemma.2 _x1)), \lam _x _x1 => hom-lemma.2 (_x (hom-lemma.1 _x1)))
+  | l :&&: r => (\lam (a, b) => (hom-lemma.1 a, hom-lemma.1 b), \lam (a, b) => (hom-lemma.2 a, hom-lemma.2 b))
+  | l :||: r => (||.map hom-lemma.1 hom-lemma.1, ||.map hom-lemma.2 hom-lemma.2)
+  | [_] A => (\lam _x _ r => \let (inP (_, p, r)) => f-lifting r \in rewriteI p (hom-lemma.1 (_x _ r)),
+              \lam _x _ r => hom-lemma.2 (_x _ (f-monotone r)))
+  | <> A => (\lam (inP (_, r, c)) => inP (_, f-monotone r, hom-lemma.1 c),
+             \lam (inP (a, r, c)) => \let (inP (_, p, r)) => f-lifting r \in inP (_, r, hom-lemma.2 (rewrite p c)))
+
+\record P-Hom \extends FrameHom
+  | f-inv {y : Cod} : ∃ (x : Dom) (f x = y)
