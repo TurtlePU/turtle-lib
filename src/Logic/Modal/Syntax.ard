@@ -1,3 +1,4 @@
+\import Data.Array
 \import Set
 
 \data ML (P : \Type)
@@ -15,3 +16,5 @@
 \func not {P : \Type} (f : ML P) : ML P => f --> _|_
 
 \func Top {P : \Type} : ML P => not _|_
+
+\func finMeet {P : \Type} (p : Array (ML P)) : ML P => fold (:&&:) Top p

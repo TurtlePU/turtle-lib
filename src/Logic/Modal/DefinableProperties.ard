@@ -5,9 +5,16 @@
 \import Logic.Modal.Kripke.Properties
 \import Logic.Modal.Semantics
 \import Logic.Modal.Syntax
+\import Paths
+\import Paths.Meta
 
-\func \infix 1 definedBy (Prop : Frame -> \Prop) {P : \Type} (A : ML P) : \Prop =>
+\func \infix 1 definedBy {P : \Type} (Prop : Frame -> \Prop) (A : ML P) : \Prop =>
   ∀ (F : Frame) (F |== A <-> Prop F)
+
+\func \infix 1 refutedBy {P : \Type} (Prop : Frame -> \Prop) (A : ML P) : \Prop =>
+  ∀ (F : Frame) (F |=/= A <-> Prop F)
+
+\func V0 {P : \Type} {F : Frame} : Valuation P F => \lam _ _ => Empty
 
 \func ModallyDefinable (Prop : Frame -> \Prop) => \Sigma (P : \Type) (A : ML P) (Prop definedBy A)
 
@@ -15,6 +22,38 @@
   \where \lemma definedBy-AT {P : \Type} {p : P} : Refl definedBy AT p => \lam _ => [p]->p<->refl
 
 \func Serial (F : Frame) : \Prop => ∀ (x : F) (∃ (y : F) (x `R` y))
-  \where \lemma definedBy-AD {P : \Type} : Serial definedBy AD {P} => \lam F =>
-      (\lam _x x => TruncP.map (_x (\lam _ _ => Empty) x) (\lam (y, xRy, _) => (y, xRy)),
-       \lam s _ x => <>T<->xR?.2 (s x))
+  \where \lemma definedBy-AD {P : \Type} : Serial definedBy AD {P} => \lam _ =>
+      (\lam _x _ => TruncP.map (_x V0 _) (\lam (_, xRy, _) => (_, xRy)),
+       \lam s _ _ => <>T<->xR?.2 (s _))
+
+\func Emptiness (F : Frame) : \Prop => F.R = (\lam _ _ => Empty)
+  \where \lemma definedBy-boxBot {P : \Type} : Emptiness definedBy {P} [_] _|_ => \lam _ =>
+      (\lam bot => exts (\lam _ _ => propExt (bot V0 _ _) absurd),
+       \lam emp _ _ _ => transport (\lam (R : _ -> _ -> \Prop) => R _ _) emp)
+
+\func Trans (F : Frame) : \Prop => ∀ (x y z : F) (x `R` y -> y `R` z -> x `R` z)
+  \where \lemma definedBy-A4 {P : \Type} {p : P} : Trans definedBy A4 p => \lam _ => [p]->[[p]]<->trans
+
+\func Euclid (F : Frame) : \Prop => ∀ (x y z : F) (x `R` y -> x `R` z -> y `R` z)
+  \where \lemma definedBy-A5 {P : \Type} {p : P} : Euclid definedBy A5 p => \lam _ =>
+      (\lam A5 _ _ _ xRy => A5 (\lam _ => R _) _ (inP (_, xRy, \lam _ r => r)) _,
+       \lam euc _ _ (inP (_, xRy, yR_)) _ xRz => yR_ _ (euc _ _ _ xRy xRz))
+
+\func Symm (F : Frame) : \Prop => ∀ (x y : F) (x `R` y -> y `R` x)
+  \where \lemma definedBy-AB {P : \Type} {p : P} : Symm definedBy AB p => \lam F =>
+      (\lam AB _ _ xRy => AB (\lam _ => R _) _ (inP (_, xRy, \lam _ yRz => yRz)),
+       \lam sym _ x (inP (_, xRy, yR_)) => yR_ _ (sym _ _ xRy))
+
+\func BigDeg (n : Nat) (F : Frame) : \Prop =>
+  ∃ (x : F) (a : Array F (suc n)) (∀ (i : Fin (suc n)) (x `R` a i))
+      (∀ (i j : Fin (suc n)) (a i = a j -> i = j))
+  \where \lemma definedBy-nonAlt {P : \Type} {n : Nat} {p : Array P (suc n)} : BigDeg n definedBy nonAlt p => \lam F =>
+      ({?}, {?})
+
+\func not-Rosser (F : Frame) : \Prop =>
+  ∃ (x y z : F) (x `R` y) (x `R` z) (∀ (t : F) (y `R` t -> z `R` t -> Empty))
+  \where \lemma refutedBy-A2 {P : \Type} {p : P} : not-Rosser refutedBy A2 p => \lam F =>
+      (\lam (inP (_, inP (_, (inP (_, xRy, yR+), inP (_, xRz, zR-))))) =>
+           inP (_, _, _, xRy, xRz, \lam _ yRt zRt => zR- _ zRt (yR+ _ yRt)),
+       \lam (inP (_, _, _, xRy, xRz, pt)) =>
+           inP (\lam _ => R _, inP (_, (inP (_, xRy, \lam _ r => r), inP (_, xRz, \lam _ r v => pt _ v r)))))

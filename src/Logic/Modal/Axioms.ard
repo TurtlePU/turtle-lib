@@ -1,5 +1,22 @@
+\import Arith.Fin
 \import Logic.Modal.Syntax
+\import Data.Bool \hiding (not)
+\import Set
 
 \func AT {P : \Type} (p : P) : ML P => [_] (prop p) --> prop p
 
 \func AD {P : \Type} : ML P => <> Top
+
+\func A4 {P : \Type} (p : P) : ML P => [_] (prop p) --> [_] ([_] (prop p))
+
+\func A5 {P : \Type} (p : P) : ML P => <> ([_] (prop p)) --> [_] (prop p)
+
+\func AB {P : \Type} (p : P) : ML P => <> ([_] (prop p)) --> prop p
+
+\func nonAlt {P : \Type} {n : Nat} (p : Array P (suc n)) : ML P =>
+  finMeet (\lam (i : Fin (suc n)) => <> (finMeet {P} (\lam (j : Fin (suc n)) => \case i == j \return ML P \with {
+    | true => prop (p j)
+    | false => not (prop (p j))
+  })))
+
+\func A2 {P : \Type} (p : P) : ML P => <> ([_] (prop p)) --> [_] (<> (prop p))
