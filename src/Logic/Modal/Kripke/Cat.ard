@@ -1,10 +1,14 @@
+\import Category \hiding (id, o)
 \import Function
 \import Logic
 \import Logic.Meta
 \import Logic.Modal.Kripke
 \import Logic.Modal.Semantics
 \import Logic.Modal.Syntax
+\import Order.PartialOrder
+\import Paths
 \import Paths.Meta
+\import Set.SubsetLattice
 
 \record FrameHom (Dom Cod : Frame) (\coerce f : Dom -> Cod)
   | f-monotone {x y : Dom} : x `R` y -> f x `R` f y
@@ -25,5 +29,44 @@
   | <> A => (\lam (inP (_, r, c)) => inP (_, f-monotone r, hom-lemma.1 c),
              \lam (inP (a, r, c)) => \let (inP (_, p, r)) => f-lifting r \in inP (_, r, hom-lemma.2 (rewrite p c)))
 
+\func Log' {P : \Type} (F : Frame) : ML P -> \Prop => F |==
+
 \record P-Hom \extends FrameHom
-  | f-inv {y : Cod} : ∃ (x : Dom) (f x = y)
+  | f-inv (y : Cod) : ∃ (x : Dom) (f x = y)
+
+\lemma log-inh {F G : Frame} {P : \Type} {f : P-Hom F G} : Log' {P} F <= Log' G =>
+  \lam l _ y => \let (inP (_, fx=y)) => f-inv {f} y \in rewriteI fx=y (hom-lemma.1 (l _ _))
+
+\instance FramePrecat : Precat Frame
+  | Hom => FrameHom
+  | id _ => \new FrameHom {
+    | f => id
+    | f-monotone => id
+    | f-lifting r => inP (_, idp, r)
+  }
+  | o g h => \new FrameHom {
+    | f => g o h
+    | f-monotone => f-monotone o f-monotone
+    | f-lifting r => \let | (inP (_, gy=u, r)) => f-lifting r
+                          | (inP (x, hx=y, r)) => f-lifting r
+                     \in inP (x, pmap g hx=y *> gy=u, r)
+  }
+  | id-left => idp
+  | id-right => idp
+  | o-assoc => idp
+
+\instance P-Hom-Precat : Precat Frame
+  | Hom => P-Hom
+  | id _ => \new P-Hom {
+    | FrameHom => FramePrecat.id _
+    | f-inv _ => inP (_, idp)
+  }
+  | o g h => \new P-Hom {
+    | FrameHom => FramePrecat.∘ g h
+    | f-inv w => \let | (inP (y, gy=w)) => f-inv {g} w
+                      | (inP (_, hx=y)) => f-inv {h} y
+                 \in inP (_, pmap g hx=y *> gy=w)
+  }
+  | id-left => idp
+  | id-right => idp
+  | o-assoc => idp
