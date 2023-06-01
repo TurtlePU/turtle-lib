@@ -1,9 +1,9 @@
 \import Function
 \import Logic
-\import Order.Lattice
+\import Order.HeytingAlgebra
 \import Paths.Meta
 
-\instance SubsetLattice (A : \Type) : Bounded.DistributiveLattice (A -> \Prop)
+\instance SubsetLattice (A : \Type) : HeytingAlgebra.Distributive (A -> \Prop)
   | <= S T => \Pi {x : A} -> S x -> T x
   | <=-refl => id
   | <=-transitive S<=T T<=U Sx => T<=U (S<=T Sx)
@@ -19,8 +19,9 @@
     | byLeft Sx => S<=T Sx
     | byRight Ux => U<=T Ux
   }
-  | top _ => \Sigma
-  | top-univ _ => ()
   | bottom _ => Empty
   | bottom-univ => absurd
   | ldistr>= (Sx, Tx|Ux) => ||.map (Sx, __) (Sx, __) Tx|Ux
+  | --> S T x => S x -> T x
+  | rel-eval (Sx, Sx->Tx) => Sx->Tx Sx
+  | rel-univ ST<=U Tx Sx => ST<=U (Sx, Tx)

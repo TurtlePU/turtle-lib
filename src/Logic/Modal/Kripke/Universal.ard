@@ -1,0 +1,12 @@
+\import Logic
+\import Logic.Meta
+\import Logic.Modal.Kripke
+\import Logic.Modal.Semantics
+\import Logic.Modal.Syntax
+
+\func Universal (W : \Type) : Frame W \cowith
+  | R _ _ => \Sigma
+
+\lemma [A]<->_A {W P : \Type} {A : ML P}
+  : Universal W |== [_] A <-> ∀ (w : W) ((Universal W, w) |== {ValidWorldSemantics _} A) =>
+  (\lam _x w _ => _x _ w _ _, \lam _x _ _ _ _ => _x _ _)

@@ -1,0 +1,22 @@
+\import Logic
+\import Logic.Meta
+\import Logic.Modal.Kripke
+\import Logic.Modal.Semantics
+\import Logic.Modal.Syntax
+\import Order.PartialOrder
+\import Set.SubsetLattice
+
+\func Log {P : \Type} (C : Frame -> \Prop) : ML P -> \Prop =>
+  \lam A => ∀ (F : Frame) (C F) (F |== A)
+
+\func Var {P : \Type} (G : ML P -> \Prop) : Frame -> \Prop =>
+  \lam F => ∀ (A : ML P) (G A) (F |== A)
+
+\lemma C<=C'->LC'<=LC {P : \Type} {C C' : Frame -> \Prop} : C <= C' -> Log {P} C' <= Log C =>
+  \lam C<=C' l _ c => l _ (C<=C' c)
+
+\lemma G<=S->VS<=VG {P : \Type} {G S : ML P -> \Prop} : G <= S -> Var S <= Var G =>
+  \lam G<=S v _ g => v _ (G<=S g)
+
+\lemma G<=LC<->C<=VG {P : \Type} {G : ML P -> \Prop} {C : Frame -> \Prop} : G <= Log C <-> C <= Var G =>
+  (\lam _x c _ g => _x g _ c, \lam _x g _ c => _x c _ g)

@@ -1,0 +1,23 @@
+\import Logic
+\import Logic.Meta
+\import Logic.Modal.Kripke
+\import Logic.Modal.Semantics
+\import Logic.Modal.Syntax
+\import Paths
+\import Paths.Meta
+
+\func [/] {I : \Type} : I -> \Prop => \lam _ => Empty
+
+\lemma [_|_]<->Rx=0 {M : Model} {x : M} : (M, x) |= [_] _|_ <-> R x = [/] =>
+  (\lam _x => ext (\lam y => propExt (\lam r => _x y r) absurd), \lam p y r => transport {M -> \Prop} (__ y) p r)
+
+\lemma <>T<->xR? {M : Model} {x : M} : (M, x) |= <> Top <-> ∃ (y : M) (x `R` y) =>
+  (TruncP.map __ (\lam (y, xRy, _) => (y, xRy)), TruncP.map __ (\lam (y, xRy) => (y, xRy, absurd)))
+
+\lemma [p]->p<->refl {P : \Type} {p : P} {F : Frame} : F |== [_] (prop p) --> prop p <-> ∀ (x : F) (x `R` x) =>
+  (\lam taut _ => taut (\lam _ => R _) _ (\lam _ r => r), \lam refl _ _ lift => lift _ (refl _))
+
+\lemma [p]->[[p]]<->trans {P : \Type} {p : P} {F : Frame}
+  : F |== [_] (prop p) --> [_] ([_] (prop p)) <-> ∀ (x y z : F) (x `R` y -> y `R` z -> x `R` z) =>
+  (\lam taut _ _ _ xRy yRz => taut (\lam _ => R _) _ (\lam _ r => r) _ xRy _ yRz,
+   \lam trans V _ lift _ xRy _ yRz => lift _ (trans _ _ _ xRy yRz))

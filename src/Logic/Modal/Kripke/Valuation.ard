@@ -1,0 +1,28 @@
+\import Logic
+\import Logic.Meta
+\import Logic.Modal.Kripke
+\import Logic.Modal.Semantics
+\import Logic.Modal.Syntax \hiding (-->)
+\import Order.HeytingAlgebra
+\import Order.Lattice
+\import Set.SubsetLattice
+\open Bounded (bottom)
+
+\func V' {M : Model} (A : ML M.P) : M -> \Prop \elim A
+  | prop p => V p
+  | _|_ => bottom
+  | A ML.--> B => V' A --> V' B
+  | A :&&: B => V' A ∧ V' B
+  | A :||: B => V' A ∨ V' B
+  | [_] A => \lam x => ∀ (y : M) (x `R` y -> V' A y)
+  | <> A => \lam x => ∃ (y : M) (x `R` y) (V' A y)
+
+\lemma |=A<->V'A {M : Model} {x : M} {A : ML M.P} : (M, x) |= A <-> V' A x \elim A
+  | prop p => (\lam _x => _x, \lam v => v)
+  | _|_ => (\lam _x => _x, \lam v => v)
+  | A ML.--> B => (\lam _x v => |=A<->V'A.1 (_x (|=A<->V'A.2 v)), \lam v _x => |=A<->V'A.2 (v (|=A<->V'A.1 _x)))
+  | A :&&: B => (\lam (a, b) => (|=A<->V'A.1 a, |=A<->V'A.1 b), \lam (a, b) => (|=A<->V'A.2 a, |=A<->V'A.2 b))
+  | A :||: B => (||.map |=A<->V'A.1 |=A<->V'A.1, ||.map |=A<->V'A.2 |=A<->V'A.2)
+  | [_] A => (\lam _x y r => |=A<->V'A.1 (_x y r), \lam v y r => |=A<->V'A.2 (v y r))
+  | <> A => (TruncP.map __ (\lam (y, xRy, y|==a) => (y, xRy, |=A<->V'A.1 y|==a)),
+             TruncP.map __ (\lam (y, xRy, V'ay) => (y, xRy, |=A<->V'A.2 V'ay)))

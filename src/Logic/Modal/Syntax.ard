@@ -1,0 +1,17 @@
+\import Set
+
+\data ML (P : \Type)
+  | prop P
+  | _|_
+  | \infixr 5 --> (hypothesis conclusion : ML P)
+  | \infixl 7 :&&: (left right : ML P)
+  | \infixl 6 :||: (left right : ML P)
+  | [_] (ML P)
+  | <> (ML P)
+  \where \use \coerce fromProp {P : \Type} (p : P) : ML P => prop p
+
+\instance MLSet (P : \Set) : BaseSet (ML P)
+
+\func not {P : \Type} (f : ML P) : ML P => f --> _|_
+
+\func Top {P : \Type} : ML P => not _|_

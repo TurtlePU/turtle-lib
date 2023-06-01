@@ -1,0 +1,13 @@
+\class Frame (W : \Type)
+  | R : W -> W -> \Prop
+
+\func Valuation (P : \Type) (F : Frame) : \Set => P -> F.W -> \Prop
+
+\class Model \extends Frame
+  | P : \Type
+  | V : Valuation P \this
+  \where \func from {P : \Type} (F : Frame) (V : Valuation P F) : Model' P \cowith
+    | Frame => F
+    | V => V
+
+\meta Model' P => Model { | P => P }

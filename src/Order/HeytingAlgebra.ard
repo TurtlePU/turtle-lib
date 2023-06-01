@@ -1,3 +1,4 @@
+\import Order.Lattice
 \import Order.PseudocomplementedLattice
 \import Paths.Meta
 
@@ -11,4 +12,4 @@
   <=-antisymmetric rel-eval bottom-univ
   \default comp-univ \as pcomp-univ {x p : E} : x ∧ p = bottom -> p <= pcomp x =>
   \lam xp=0 => rel-univ (rewrite xp=0 <=-refl)
-}
+} \where \class Distributive \extends HeytingAlgebra, Bounded.DistributiveLattice

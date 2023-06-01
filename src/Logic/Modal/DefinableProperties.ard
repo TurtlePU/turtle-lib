@@ -1,0 +1,20 @@
+\import Logic
+\import Logic.Meta
+\import Logic.Modal.Axioms
+\import Logic.Modal.Kripke
+\import Logic.Modal.Kripke.Properties
+\import Logic.Modal.Semantics
+\import Logic.Modal.Syntax
+
+\func \infix 1 definedBy (Prop : Frame -> \Prop) {P : \Type} (A : ML P) : \Prop =>
+  ∀ (F : Frame) (F |== A <-> Prop F)
+
+\func ModallyDefinable (Prop : Frame -> \Prop) => \Sigma (P : \Type) (A : ML P) (Prop definedBy A)
+
+\func Refl (F : Frame) : \Prop => ∀ (x : F) (x `R` x)
+  \where \lemma definedBy-AT {P : \Type} {p : P} : Refl definedBy AT p => \lam _ => [p]->p<->refl
+
+\func Serial (F : Frame) : \Prop => ∀ (x : F) (∃ (y : F) (x `R` y))
+  \where \lemma definedBy-AD {P : \Type} : Serial definedBy AD {P} => \lam F =>
+      (\lam _x x => TruncP.map (_x (\lam _ _ => Empty) x) (\lam (y, xRy, _) => (y, xRy)),
+       \lam s _ x => <>T<->xR?.2 (s x))

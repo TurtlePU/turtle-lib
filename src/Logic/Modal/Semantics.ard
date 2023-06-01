@@ -1,0 +1,77 @@
+\import Logic
+\import Logic.Meta
+\import Logic.Modal.Kripke
+\import Logic.Modal.Syntax
+
+\func \infixr 3 && (A B : \Prop) : \Prop => \Sigma A B
+
+\class Semantics (P : \Type) (\classifying C : \Type)
+  | \infix 4 |== : C -> ML P -> \Prop
+  | \infix 4 |=/= : C -> ML P -> \Prop
+  | |==-disjoint {c : C} {f : ML P} : c |=/= f -> Not (c |== f)
+
+\func WorldSemantics (W : Model) : Semantics P W \cowith
+  | |== (x : W) (f : ML W.P) : \Prop \elim f {
+    | prop p => V p x
+    | _|_ => Empty
+    | h --> c => x |== h -> x |== c
+    | l :&&: r => x |== l && x |== r
+    | l :||: r => x |== l || x |== r
+    | [_] f => ∀ (y : W) (x `R` y -> y |== f)
+    | <> f => ∃ (y : W) (x `R` y) (y |== f)
+  }
+  | |=/= (x : W) (f : ML W.P) : \Prop \elim f {
+    | prop p => Not (V p x)
+    | _|_ => \Sigma
+    | h --> c => x |== h && x |=/= c
+    | l :&&: r => x |=/= l || x |=/= r
+    | l :||: r => x |=/= l && x |=/= r
+    | [_] f => ∃ (y : W) (x `R` y) (y |=/= f)
+    | <> f => ∀ (y : W) (x `R` y -> y |=/= f)
+  }
+  | |==-disjoint {x : W} {f : ML W.P} (x|=/=f : x |=/= f) (x|==f : x |== f) : Empty \elim f {
+    | prop _ => x|=/=f x|==f
+    | _|_ => x|==f
+    | _ --> _ => |==-disjoint x|=/=f.2 (x|==f x|=/=f.1)
+    | _ :&&: _ => \case \elim x|=/=f \with {
+      | byLeft x|=/=l => |==-disjoint x|=/=l x|==f.1
+      | byRight x|=/=r => |==-disjoint x|=/=r x|==f.2
+    }
+    | _ :||: _ => \case \elim x|==f \with {
+      | byLeft x|==l => |==-disjoint x|=/=f.1 x|==l
+      | byRight x|==r => |==-disjoint x|=/=f.2 x|==r
+    }
+    | [_] _ => \case \elim x|=/=f \with {
+      | inP (y, xRy, y|=/=f) => |==-disjoint y|=/=f (x|==f _ xRy)
+    }
+    | <> _ => \case \elim x|==f \with {
+      | inP (y, xRy, y|==f) => |==-disjoint (x|=/=f _ xRy) y|==f
+    }
+  }
+
+\instance PairSemantics (P : \Type) : Semantics P (\Sigma (W : Model' P) W)
+  | |== (_, x) f => x |== {WorldSemantics _} f
+  | |=/= (_, x) f => x |=/= {WorldSemantics _} f
+  | |==-disjoint => |==-disjoint {WorldSemantics _}
+
+\func \infix 4 |= {P : \Type} (Mx : \Sigma (M : Model' P) (x : M)) (f : ML P) : \Prop => Mx |== f
+
+\instance ModelSemantics (P : \Type) : Semantics P (Model' P)
+  | |== M f => ∀ (x : M) ((M, x) |== {PairSemantics _} f)
+  | |=/= M f => ∃ (x : M) ((M, x) |=/= {PairSemantics _} f)
+  | |==-disjoint (inP (x, x|=/=f)) _|==f => |==-disjoint {WorldSemantics _} x|=/=f (x `_|==f)
+
+\instance ValidSemantics (P : \Type) : Semantics P Frame
+  | |== F f => ∀ (V : Valuation P F) (Model.from F V |== f)
+  | |=/= F f => ∃ (V : Valuation P F) (Model.from F V |=/= f)
+  | |==-disjoint (inP (V, FV|=/=f)) _|==f => |==-disjoint {ModelSemantics _} FV|=/=f (V `_|==f)
+
+\instance ValidWorldSemantics (P : \Type) : Semantics P (\Sigma (F : Frame) F)
+  | |== (F, x) f => ∀ (V : Valuation P F) ((Model.from F V, x) |== {PairSemantics _} f)
+  | |=/= (F, x) f => ∃ (V : Valuation P F) ((Model.from F V, x) |=/= {PairSemantics _} f)
+  | |==-disjoint (inP (V, V|=/=f)) _|==f => |==-disjoint {WorldSemantics _} V|=/=f (_ `_|==f)
+
+\instance ClassSemantics (P : \Type) : Semantics P (Frame -> \Prop)
+  | |== P f => ∀ (F : Frame) (P F -> F |== f)
+  | |=/= P f => ∃ (F : Frame) (P F) (F |=/= f)
+  | |==-disjoint (inP (F, PF, F|=/=f)) _|==f => |==-disjoint {ValidSemantics _} F|=/=f (_|==f F PF)

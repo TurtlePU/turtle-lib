@@ -1,0 +1,5 @@
+\import Logic.Modal.Syntax
+
+\func AT {P : \Type} (p : P) : ML P => [_] (prop p) --> prop p
+
+\func AD {P : \Type} : ML P => <> Top

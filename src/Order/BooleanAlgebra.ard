@@ -6,7 +6,7 @@
 \import Paths
 \import Paths.Meta
 
-\class BooleanAlgebra \extends HeytingAlgebra, DeMorganAlgebra {
+\class BooleanAlgebra \extends HeytingAlgebra.Distributive, DeMorganAlgebra {
   | --> x y => comp x ∨ y
   | rel-eval => rewrite (ldistr, non-contradiction _, bottom-left) meet-right
   | rel-univ {x} xr<=y => run {
