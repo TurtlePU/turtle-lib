@@ -1,0 +1,32 @@
+\import Function
+\import Logic
+\import Logic.Modal.Kripke
+\import Logic.Modal.Semantics
+\import Logic.Modal.Syntax
+\import Order.KleeneAlgebra
+\import Relation.Algebra
+\import Relation.Truncated
+
+\record FrameSub (F : Frame) (\coerce S : F -> \Prop)
+  | sub-inherits {x y : F} : x `R` y -> S x -> S y
+
+\instance SubFrame {F : Frame} (S : FrameSub F) : Frame (\Sigma (x : F) (S x))
+  | R (x, _) (y, _) => x `R` y
+
+\instance SubModel {M : Model} (S : FrameSub M) : Model (\Sigma (x : M) (S x))
+  | Frame => SubFrame S
+  | P => M.P
+  | V p (x, _) => V p x
+
+\lemma sub-prop {M : Model} {S : FrameSub M} {w : \Sigma (x : M) (S x)} {A : ML M.P}
+  : (SubModel S, w) |= A <-> (M, w.1) |= A \elim A
+  | prop p => (id, id)
+  | _|_ => (id, id)
+  | h --> c => {?}
+  | l :&&: r => {?}
+  | l :||: r => {?}
+  | [_] A => {?}
+  | <> A => {?}
+
+\func Cone (F : Frame) (o : F) : FrameSub F ((^ R) o) \cowith
+  | sub-inherits => \lam r s => RelationAlgebra.cons-right s r

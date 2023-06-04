@@ -1,4 +1,4 @@
-\class Frame (W : \Type)
+\class Frame (W : \Set)
   | R : W -> W -> \Prop
 
 \func Valuation (P : \Type) (F : Frame) : \Set => P -> F.W -> \Prop
