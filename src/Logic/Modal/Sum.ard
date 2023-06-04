@@ -14,11 +14,11 @@
 \instance SumFrame {I : \Type} (F : I -> Frame) : Frame (FrameSum F)
   | R (i, fi) (j, fj) => ∃ (p : i = j) (transport (F __) p fi `R` fj)
 
-\instance SumModel {I : \Type} {P : \Type} (F : I -> Model' P) : Model (FrameSum F) { | P => P }
+\instance SumModel {I P : \Type} (F : I -> Model' P) : Model (FrameSum F) { | P => P }
   | Frame => SumFrame F
   | V p (_, f) => V p f
 
-\lemma sum-sat {I : \Type} {P : \Type} {F : I -> Model' P} {i : I} {f : F i} {A : ML P}
+\lemma sum-sat {I P : \Type} {F : I -> Model' P} {i : I} {f : F i} {A : ML P}
   : (F i, f) |= A <-> (SumModel F, \new FrameSum _ i f) |= A \elim A
   | prop p => (id, id)
   | _|_ => (id, id)
@@ -36,7 +36,7 @@
   \where \func Index (C : Frame -> \Prop) => \Sigma (F : Frame) (C F)
 
 \lemma sum-reducer {P : \Type} (C : Frame -> \Prop) : Log {P} C = Log' (SumOf C) =>
-  ext (\lam m => propExt
+  ext (\lam _ => propExt
       (\lam _x V ((F, CF), x) => sum-lemma.1 (_x F CF (\lam p w => V p (\new FrameSum _ (F, CF) w)) x))
       (\lam _x F c V x => sum-lemma.2 (_x {?} {?})))
   \where \lemma sum-lemma {C : Frame -> \Prop} {P : \Type} {V : Valuation P (SumOf C)}
@@ -44,3 +44,10 @@
     : (Model.from F.1 (\lam p w => V p (\new FrameSum _ F w)), x) |= A
       <-> (Model.from (SumOf C) V, \new FrameSum _ F x) |= A =>
       sum-sat {SumOf.Index C} {P} {\lam P => Model.from P.1 (\lam p w => V p (\new FrameSum _ P w))}
+
+\lemma sum-log' {P I : \Type} (F : I -> Frame)
+  : Log' {P} (SumFrame F) = (\lam m => ∀ (i : I) (Log' (F i) m)) =>
+  ext (\lam _ => propExt (\lam _x i V x => sum-sat.2 {?}) (\lam _x V x => {?}))
+
+\lemma sum-log {P I : \Type} (Fs : I -> Frame)
+  : Log' {P} (SumFrame Fs) = Log (\lam F => ∃ (i : I) (Fs i = F)) => {?}
