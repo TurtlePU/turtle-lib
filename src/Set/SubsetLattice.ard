@@ -1,6 +1,8 @@
+\import Data.Array
 \import Function
 \import Logic
 \import Order.HeytingAlgebra
+\import Order.Lattice
 \import Paths.Meta
 
 \instance SubsetLattice (A : \Type) : HeytingAlgebra.Distributive (A -> \Prop)
@@ -25,3 +27,9 @@
   | --> S T x => S x -> T x
   | rel-eval (Sx, Sx->Tx) => Sx->Tx Sx
   | rel-univ ST<=U Tx Sx => ST<=U (Sx, Tx)
+
+\lemma fin-meet-index {A : \Type} {n : Nat} {p : Array (A -> \Prop) n} {x : A}
+                      (q : fold {A -> \Prop} (∧) Bounded.top p x) (i : Fin n)
+  : p i x \elim n, i
+  | suc _, 0 => q.1
+  | suc _, suc _ => fin-meet-index q.2 _

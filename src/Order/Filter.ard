@@ -14,7 +14,7 @@
 
   \lemma filter-fin-meet {n : Nat} {a : Array L n} (p : ∀ (i : Fin n) (F (a i))) : F (fold (∧) L.top a) \elim n, a
     | 0, nil => filter-top
-    | suc n, a :: a1 => filter-meet (p 0) (filter-fin-meet (\lam i => p (suc i)))
+    | suc _, _ :: _ => filter-meet (p 0) (filter-fin-meet (\lam i => p (suc i)))
 }
 
 \instance FilterLattice (L : Bounded.MeetSemilattice) : Bounded.MeetSemilattice (Filter L)

@@ -1,12 +1,16 @@
+\import Data.Array
+\import Function
 \import Logic
 \import Logic.ConstructivePredicates.Signature
 \import Logic.ConstructivePredicates.Structure
 \import Logic.Meta
 \import Order.Filter
+\import Order.Lattice
 \import Paths
 \import Paths.Meta
 \import Relation.Equivalence
 \import Set.SubsetLattice
+\open Bounded (top)
 
 \record Product {S : Signature} {I : \Type} (A : I -> Structure S) (\coerce a : \Pi (i : I) -> A i)
 
@@ -19,7 +23,7 @@
 \instance FilterEquivalence {S : Signature} {I : \Type} (A : I -> Structure S) (F : IFilter I)
 : Equivalence (Product A)
   | ~ a b => F (\lam i => a i = b i)
-  | ~-reflexive => transport F (ext (\lam i => propExt (\lam _ => idp) (\lam _ => ()))) filter-top
+  | ~-reflexive => transport F (ext (\lam i => propExt (\lam _ => idp) (\lam _ => absurd))) filter-top
   | ~-symmetric => transport F (ext (\lam i => propExt inv inv))
   | ~-transitive {a} {b} {c} aFb bFc =>
     filter-up (\lam {i} (p : \Sigma (a i = b i) (b i = c i)) => p.1 *> p.2) (filter-meet aFb bFc)
@@ -29,17 +33,24 @@
 
 \instance FilteredStructure {S : Signature} {I : \Type} (A : I -> Structure S) (F : IFilter I)
 : Structure S (FilteredProduct A F)
-  | ! f a => Quotient.liftArrayFun (__ ~ __) (\lam _ => ~-reflexive) (~) (f ! {ProductStructure A})
-      (\lam l l' p => filter-up (\lam {i} q => pmap (f !) (exts (\lam j => {?}))) (F.filter-fin-meet {fun-arity f} {\lam j i => l j i = l' j i} p)) a
-  | ? p a =>
-    \case Quotient.liftArrayFun (__ ~ __) (\lam _ => ~-reflexive) (=)
-              (\lam (a' : Array (Product A) (pred-arity p)) => F (\lam i => p ? (\lam j => a' j i)))
-              (\lam l l' p => propExt
-                  (\lam f => {?})
-                  (\lam f => {?})
-              )
-              a
-    \with {
-      | in~ P => P
-      | ~-equiv x y p => p
-    }
+  | ! f => Quotient.liftArrayFun (__ ~ __) (\lam _ => ~-reflexive) (~) (f ! {ProductStructure A})
+      (\lam l l' p => filter-up
+          (\lam q => pmap (f !) (exts (fin-meet-index q)))
+          (F.filter-fin-meet {fun-arity f} {\lam j i => l j i = l' j i} p))
+  | ? p => fromEq o Quotient.liftArrayFun (__ ~ __) (\lam _ => ~-reflexive) _
+                        (\lam (a' : Array (Product A) (pred-arity p)) => F (\lam i => p ? (\lam j => a' j i)))
+                        (\lam _ _ p => propExt (prop-lemma p) (prop-lemma (\lam j => ~-symmetric (p j))))
+  \where {
+    \func prop-lemma {I : \Type} {F : IFilter I} {S : Signature} {A : I -> Structure S}
+                     {p : S.Pred} {l l' : Array (Product {S} {I} A) (pred-arity p)}
+                     (q : \Pi (j : _) -> l j ~ {FilterEquivalence _ F} l' j)
+                     (f : F (\lam i => p ? (\lam j => l j i))) : F (\lam i => p ? (\lam j => l' j i)) =>
+      filter-up
+          (\lam {i} (m : \Sigma (p ? (\lam j => l j i)) (fold {I -> \Prop} (∧) top (\lam j i => l j i = l' j i) i)) =>
+              transport (p ?) (exts (fin-meet-index m.2)) m.1)
+          (filter-meet f (F.filter-fin-meet {_} {\lam j i => l j i = l' j i} q))
+
+    \func fromEq {A : \Set} (q : Quotient {A} (=)) : A \elim q
+      | in~ a => a
+      | ~-equiv _ _ r => r
+  }
