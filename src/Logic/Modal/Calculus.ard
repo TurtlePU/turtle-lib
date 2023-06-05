@@ -1,0 +1,12 @@
+\import Logic
+\import Logic.Modal.Syntax
+
+\func isClassicTaut {P : \Type} (A : ML P) => Empty
+
+\data \infix 2 |- {I P : \Type} (G : I -> ML P) (A : ML P) \elim A
+  | A => ctx (i : I) (G i = A)
+  | A => taut (isClassicTaut A)
+  | [_] (prop p --> prop q) --> [_] (prop p') --> [_] (prop q') => AK (p = p') (q = q')
+  | B => MP {A : ML P} (G |- A --> B) (G |- A)
+  | [_] A => Gen (G |- A)
+  | A' => Sub {Q : \Type}
