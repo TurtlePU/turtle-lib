@@ -12,9 +12,11 @@
   | filter-meet {a b : L} : F a -> F b -> F (a ∧ b)
   | filter-up {a b : L} : a <= b -> F a -> F b
 
-  \lemma filter-fin-meet {n : Nat} {a : Array L n} (p : ∀ (i : Fin n) (F (a i))) : F (fold (∧) L.top a) \elim n, a
+  \lemma filter-up-flip {a : L} (Fa : F a) {b : L} : a <= b -> F b => filter-up __ Fa
+
+  \lemma filter-fin-meet {n : Nat} (a : Array L n) (p : ∀ (i : Fin n) (F (a i))) : F (fold (∧) L.top a) \elim n, a
     | 0, nil => filter-top
-    | suc _, _ :: _ => filter-meet (p 0) (filter-fin-meet (\lam i => p (suc i)))
+    | suc _, _ :: _ => filter-meet (p 0) (filter-fin-meet _ (\lam i => p (suc i)))
 }
 
 \instance FilterLattice (L : Bounded.MeetSemilattice) : Bounded.MeetSemilattice (Filter L)
