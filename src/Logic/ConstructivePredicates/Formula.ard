@@ -1,0 +1,17 @@
+\import Logic.ConstructivePredicates.Signature
+
+\data Term (S : Signature) (n : Nat)
+  | var (Fin n)
+  | \infix 2 :!: (f : S.Fun) (Array (Term S n) (fun-arity f))
+
+\data Formula (S : Signature) (n : Nat)
+  | \infix 5 :?: (p : S.Pred) (Array (Term S n) (pred-arity p))
+  | \infix 5 :==: (l r : Term S n)
+  | \infixr 2 :->: (A B : Formula S n)
+  | \infixl 3 :||: (A B : Formula S n)
+  | \infixl 4 :&&: (A B : Formula S n)
+  | forall (Formula S (suc n))
+  | exists (Formula S (suc n))
+  | _|_
+
+\func Sentence (S : Signature) => Formula S 0

@@ -1,0 +1,23 @@
+\import Logic
+\import Logic.ConstructivePredicates.Formula
+\import Logic.ConstructivePredicates.Signature
+\import Logic.ConstructivePredicates.Structure
+\import Logic.Meta
+
+\func \infix 3 eval {S : Signature} {A : Structure S} {n : Nat}
+                    (v : Array A n) (t : Term S n) : A \elim t
+  | var x => v x
+  | f :!: d => f ! (\lam i => v eval d i)
+
+\func \infix 3 prop {S : Signature} {A : Structure S} {n : Nat}
+                    (v : Array A n) (B : Formula S n) : \Prop \elim B
+  | p :?: d => p ? (\lam i => v eval d i)
+  | l :==: r => v eval l = v eval r
+  | C :->: B => v prop C -> v prop B
+  | C :||: B => v prop C || v prop B
+  | C :&&: B => \Sigma (v prop C) (v prop B)
+  | forall B => ∀ (x : A) (x :: v prop B)
+  | exists B => ∃ (x : A) (x :: v prop B)
+  | _|_ => Empty
+
+\func \infix 3 sat {S : Signature} (A : Structure S) (B : Sentence S) : \Prop => nil prop {_} {A} B
