@@ -1,0 +1,38 @@
+\import Algebra.Monoid
+\import Algebra.Ring
+\import Arith.Nat
+\import HLevel
+\import Paths
+
+\data Int
+  | \infix 2 -z- (m n : Nat)
+  | step (m n : Nat) : suc m -z- suc n = m -z- n
+  \where {
+    \use \level levelSet : isSet Int => {?}
+  }
+
+\instance IntRing : CRing.Dec Int
+  | zro => zero -z- zero
+  | + => \case \elim __, \elim __ \with {
+    | m -z- n, l -z- k => (m + l) -z- (n + k)
+    | m -z- n, step l k => path (step _ _)
+    | step m n, l -z- k => path (step _ _)
+  }
+  | zro-left {m -z- n} => idp
+  | zro-right {m -z- n} => idp
+  | +-assoc {m -z- n} {a -z- b} {l -z- k} => pmap2 (-z-) +-assoc +-assoc
+  | negative => \case \elim __ \with {
+    | m -z- n => n -z- m
+    | step m n => path (step _ _)
+  }
+  | negative-left {m -z- n} => {?}
+  | decideEq => {?}
+  | +-comm => {?}
+  | ide => 1 -z- 0
+  | * => {?}
+  | ide-left => {?}
+  | ide-right => {?}
+  | *-assoc => {?}
+  | ldistr => {?}
+  | rdistr => {?}
+  | *-comm => {?}

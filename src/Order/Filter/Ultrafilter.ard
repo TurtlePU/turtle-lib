@@ -12,7 +12,7 @@
 \open DistributiveLattice (ldistr)
 \open BooleanAlgebra (bottom-left)
 
-\record UltraFilter \extends DisjointFilter {
+\record UltraFilter \extends DisjointFilter.Nontrivial {
   \override L : BooleanAlgebra
   | filter-ultra (x : L) : F x || F (comp x)
   | filter-disjoint {a} {b} Fab => \case filter-ultra a \with {

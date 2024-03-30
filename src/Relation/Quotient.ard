@@ -1,0 +1,51 @@
+\import Logic
+\import Logic.Meta
+\import Meta
+\import Paths
+\import Paths.Meta
+\import Relation.Equivalence
+
+\instance ArrayEquivalence (A : Equivalence) (n : Nat) : Equivalence (Array A n)
+  | ~ x y => ∀ i (x i ~ y i)
+  | ~-reflexive _ => ~-reflexive
+  | ~-symmetric x~y i => ~-symmetric (x~y i)
+  | ~-transitive x~y y~z i => ~-transitive (x~y i) (y~z i)
+
+\lemma symExt {A : Equivalence} {P : A -> \Prop} {x y : A} (rel : x ~ y)
+              (stable : ∀ {x y : A} (x ~ y -> P x -> P y)) : P x = P y =>
+  propExt (stable rel) (stable (~-symmetric rel))
+
+\func lowerArray {A : Equivalence} {n : Nat} (q : Quotient {Array A n} (~)) : Array (Quotient {A} (~)) n \elim q
+  | in~ a => \lam i => in~ (a i)
+  | ~-equiv _ _ r => exts (\lam j => path (~-equiv _ _ (r j)))
+  \where {
+    \lemma inverse {A : Equivalence} {n : Nat} (q : Quotient {Array A n} (~))
+      : liftArray (lowerArray q) = q \elim q | in~ a => ind a
+
+    \lemma ind {A : Equivalence} {n : Nat} (a : Array A n)
+      : liftArray (lowerArray (in~ a)) = in~ a \elim n, a
+      | 0, nil => idp
+      | suc _, _ :: a => unfold liftArray (rewrite (ind a) idp)
+  }
+
+\func liftArray {A : Equivalence} {n : Nat} (a : Array (Quotient {A} (~)) n) : Quotient {Array A n} (~) =>
+  Quotient.liftArray (__ ~ __) (\lam _ => ~-reflexive) a
+  \where {
+    \lemma inverse {A : Equivalence} {n : Nat} {a : Array (Quotient {A} (~)) n}
+      : lowerArray (liftArray a) = {Array _ _} a \elim n, a
+      | 0, nil => idp {Array _ _}
+      | suc _, in~ _ :: a => unfold liftArray (cases (liftArray a) \with { | in~ _ => idp {Array _ _} })
+
+    \lemma prop {A : Equivalence} {n : Nat} {a : Array (Quotient {A} (~)) n} {b : Array A n}
+                (eq : liftArray a = in~ b) (i : Fin n) : a i = in~ (b i) =>
+      run {
+        pmap {Array _ _} (\lam a => a i) {a} {lowerArray (in~ b)},
+        inv {Array _ _} inverse *> {Array _ _} pmap {_} {Array _ _} lowerArray eq
+      }
+
+    \lemma stuff {A : Equivalence} {n : Nat} {P : Array (Quotient {A} (~)) n -> \Prop}
+                 (a : Array (Quotient {A} (~)) n) (p : ∀ (a : Array A n) (P (lowerArray (in~ a))))
+      : P a => cases (liftArray a arg addPath) \with {
+      | in~ a', q => transportInv P (exts (prop q)) (p a')
+    }
+  }

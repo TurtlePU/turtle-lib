@@ -1,24 +1,35 @@
-\import Function
-\import Function.Meta
 \import Logic
+\import Logic.ConstructivePredicates.Eval
+\import Logic.ConstructivePredicates.Formula
 \import Logic.ConstructivePredicates.Signature
 \import Logic.ConstructivePredicates.Structure
 \import Logic.Meta
+\import Meta
 \import Order.Filter
+\import Order.Filter.Disjoint
+\import Order.Lattice
 \import Paths
 \import Paths.Meta
 \import Relation.Equivalence
+\import Relation.Quotient
 \import Set.SubsetLattice
 
-\record Product {S : Signature} {I : \Type} (A : I -> Structure S) (\coerce a : \Pi (i : I) -> A i)
+\record Product {I : \Type} {S : Signature} (A : I -> Structure S) (\coerce a : \Pi (i : I) -> A i)
 
-\instance ProductStructure {S : Signature} {I : \Type} (A : I -> Structure S) : Structure S (Product A)
+\instance ProductStructure {I : \Type} {S : Signature} (A : I -> Structure S) : Structure S (Product A)
   | ! f a => \new Product _ (\lam i => f ! (\lam j => a j i))
   | ? p a => ∀ (i : I) (p ? (\lam j => a j i))
 
+\lemma eval-i {I : \Type} {S : Signature} {A : I -> Structure S}
+              {n : Nat} (v : Array (Product A) n) (T : Term S n)
+              (i : I) : (v eval T) i = (\lam j => v j i) eval T
+\elim T
+  | var _ => idp
+  | f :!: d => pmap (f !) (exts (\lam j => eval-i _ (d j) _))
+
 \func IFilter (I : \Type) : \Type => Filter (SubsetLattice I)
 
-\instance FilterEquivalence {S : Signature} {I : \Type} (A : I -> Structure S) (F : IFilter I)
+\instance FilterEquivalence {I : \Type} (F : IFilter I) {S : Signature} (A : I -> Structure S)
 : Equivalence (Product A)
   | ~ a b => F (\lam i => a i = b i)
   | ~-reflexive => transport F (ext (\lam i => propExt (\lam _ => idp) (\lam _ => absurd))) filter-top
@@ -27,41 +38,52 @@
     filter-up (\lam {i} (p : \Sigma (a i = b i) (b i = c i)) => p.1 *> p.2) (filter-meet aFb bFc)
 
 \func FilteredProduct {I : \Type} (F : IFilter I) {S : Signature} (A : I -> Structure S) =>
-  Quotient (~ {FilterEquivalence A F})
-  \where {
-    \func isStableFun {B : \Type} (R : B -> B -> \Prop) {n : Nat} (f : Array (Product A) n -> B) : \Prop =>
-      ∀ {l l' : Array (Product A) n} ((∀ (i : Fin n) (l i ~ {FilterEquivalence _ F} l' i)) -> f l `R` f l')
+  Quotient (~ {FilterEquivalence F A})
 
-    \func liftArrayFun {B : \Type} (R : B -> B -> \Prop) {n : Nat}
-                       (f : Array (Product A) n -> B) (s : isStableFun R f)
-      : Array (FilteredProduct F A) n -> Quotient R =>
-      Quotient.liftArrayFun (__ ~ __) (\lam _ => ~-reflexive) R f (\lam _ _ => s)
-
-    \func liftArrayEndo {n : Nat} (f : Array (Product A) n -> Product A)
-                        (s : isStableFun (~ {FilterEquivalence _ F}) f)
-      : Array (FilteredProduct F A) n -> FilteredProduct F A => liftArrayFun _ _ s
-
-    \func isStableProp {n : Nat} (f : Array (Product A) n -> \Prop) : \Prop =>
-      ∀ {l l' : Array (Product A) n} ((∀ (i : Fin n) (l i ~ {FilterEquivalence _ F} l' i)) -> f l -> f l')
-
-    \func liftArrayPred {n : Nat} (f : Array (Product A) n -> \Prop) (s : isStableProp f)
-      : Array (FilteredProduct F A) n -> \Prop =>
-      fromEq o liftArrayFun _ f (\lam p => propExt (s p) (s (\lam i => ~-symmetric (p i))))
-
-    \func fromEq {A : \Set} (q : Quotient {A} (=)) : A \elim q
-      | in~ a => a
-      | ~-equiv _ _ r => r
+\instance FilteredStructure {I : \Type} (F : IFilter I) {S : Signature} (A : I -> Structure S)
+: Structure S (FilteredProduct F A)
+  | ! f v => \case liftArray v \with {
+    | in~ v => in~ (f ! v)
+    | ~-equiv x y r => run {
+      path, ~-equiv _ _, F.filter-up-flip (F.filter-fin-meet (\lam j i => x j i = y j i) r),
+      \lam {i} p => (pmap (f !) (exts (fin-meet-index p)) : f ! (\lam j => x j i) = f ! (\lam j => y j i))
+    }
+  }
+  | ? p v => \case liftArray v \with {
+    | in~ v => F (\lam i => p ? (\lam j => v j i))
+    | ~-equiv _ _ r => run {
+      symExt {ArrayEquivalence _ _} r,
+      \lam {x} {y} q (f : F (\lam i => p ? (\lam j => x j i))) =>
+          F.filter-up-flip
+              (filter-meet f (F.filter-fin-meet (\lam j i => x j i = y j i) q))
+              {\lam i => p ? (\lam j => y j i)}
+              (\lam (x?, x~y) => transport (p ?) (exts (fin-meet-index x~y)) x?)
+    }
   }
 
-\instance FilteredStructure {S : Signature} {I : \Type} (A : I -> Structure S) (F : IFilter I)
-: Structure S (FilteredProduct F A)
-  | ! f => FilteredProduct.liftArrayEndo F A (f !) $
-  \lam {l} {l'} p =>
-      filter-up (\lam q => pmap (f !) (exts (fin-meet-index q)))
-          (F.filter-fin-meet (\lam j i => l j i = l' j i) p)
-  | ? p => FilteredProduct.liftArrayPred F A (\lam a => F (\lam i => p ? (\lam j => a j i))) $
-  \lam {l} {l'} q f =>
-      F.filter-up-flip
-          (filter-meet f (F.filter-fin-meet (\lam j i => l j i = l' j i) q))
-          {\lam i => p ? (\lam j => l' j i)}
-          (\lam (l?, l~l') => transport (p ?) (exts (fin-meet-index l~l')) l?)
+\lemma eval-in~ {I : \Type} {F : IFilter I} {S : Signature} {A : I -> Structure S}
+                {n : Nat} (v : Array (Product A) n) (T : Term S n)
+  : lowerArray (in~ v) eval {_} {FilteredStructure F _} T = in~ (v eval T) \elim T
+  | var _ => idp
+  | f :!: d => pmap {Array _ _} (f !) {\lam j => lowerArray (in~ v) eval d j} (exts (\lam j => eval-in~ v (d j)))
+    *> unfold (!) (rewrite (lowerArray.inverse (in~ (\lam j => v eval d j))) idp)
+
+\func DFilter (I : \Type) : \Type => DisjointFilter (SubsetLattice I)
+
+\lemma prop-in~ {I : \Type} {U : DFilter I} {S : Signature} {A : I -> Structure S}
+                {n : Nat} (v : Array (Product A) n) (P : Formula S n)
+  : lowerArray (in~ v) prop {_} {FilteredStructure U _} P = U (\lam i => (\lam j => v j i) prop P) \elim P
+  | p :?: d => pmap {Array (FilteredProduct U A) _} (p ?) {\lam j => lowerArray (in~ v) eval d j}
+      (exts (\lam j => eval-in~ v (d j))) *> rewrite (lowerArray.inverse (in~ (\lam j => v eval d j)))
+      (pmap U (ext (\lam _ => pmap (p ?) (exts (\lam _ => eval-i _ _ _)))))
+  | l :==: r => rewrite (eval-in~ v, eval-in~ v) {?}
+  | Q :->: P => rewrite (prop-in~ v, prop-in~ v) (propExt (\lam _x => {?}) filter-rel)
+  | _ :||: _ => rewrite (prop-in~ v, prop-in~ v) (propExt (\case __ \with {
+    | byLeft a => filter-up (join-left {SubsetLattice I}) a
+    | byRight b => filter-up (join-right {SubsetLattice I}) b
+  }) filter-disjoint)
+  | _ :&&: _ => rewrite (prop-in~ v, prop-in~ v) (propExt (\lam (a, b) => filter-meet a b)
+      (\lam f => (filter-up (meet-left {SubsetLattice I}) f, filter-up (meet-right {SubsetLattice I}) f)))
+  | forall P => {?}
+  | exists P => {?}
+  | _|_ => propExt absurd {?}

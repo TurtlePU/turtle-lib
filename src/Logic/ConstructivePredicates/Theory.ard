@@ -1,0 +1,9 @@
+\import Logic.ConstructivePredicates.Eval
+\import Logic.ConstructivePredicates.Formula
+\import Logic.ConstructivePredicates.Signature
+\import Logic.ConstructivePredicates.Structure
+\import Logic.Meta
+
+\record Theory (S : Signature) (I : \Type) (\coerce f : I -> Sentence S)
+
+\func \infix 3 ||- {S : Signature} (A : Structure S) (T : Theory S) : \Prop => ∀ (i : T.I) (A sat T i)

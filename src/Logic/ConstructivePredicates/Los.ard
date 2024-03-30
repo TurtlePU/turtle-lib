@@ -1,0 +1,32 @@
+\import Logic
+\import Logic.ConstructivePredicates.Eval
+\import Logic.ConstructivePredicates.Formula
+\import Logic.ConstructivePredicates.Product
+\import Logic.ConstructivePredicates.Signature
+\import Logic.ConstructivePredicates.Structure
+\import Meta
+\import Order.Filter
+\import Paths
+\import Paths.Meta
+\import Relation.Equivalence
+\import Relation.Quotient
+\import Set.SubsetLattice
+
+\func \infix 3 filters {I : \Type} {F : IFilter I} {S : Signature} {A : I -> Structure S}
+                       {n : Nat} (v : Array (FilteredProduct F A) n) (B : Formula S n) : \Prop =>
+  \case liftArray v \with {
+    | in~ v => F (\lam i => (\lam j => v j i) prop B)
+    | ~-equiv _ _ r => run {
+      symExt {ArrayEquivalence _ _} r,
+      \lam {x} {y} q (f : F (\lam i => (\lam j => x j i) prop B)) =>
+          F.filter-up-flip
+              (filter-meet f (F.filter-fin-meet (\lam j i => x j i = y j i) q))
+              {\lam i => (\lam j => y j i) prop B}
+              (\lam {i} (x?, x~y) => transport (`prop B) {\lam j => x j i} (exts (fin-meet-index x~y)) x?)
+    }
+  }
+
+\lemma Los-theorem {I : \Type} {U : DFilter I} {S : Signature} {A : I -> Structure S}
+                   {n : Nat} {v : Array (FilteredProduct U A) n} {B : Formula S n}
+  : v filters B <-> v prop B =>
+  liftArray.stuff v (\lam a => {?})

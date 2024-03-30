@@ -1,8 +1,10 @@
 \import Logic
 \import Order.Filter
 \import Order.Lattice
+\open Bounded (bottom)
 
 \record DisjointFilter \extends Filter {
-  \override Filter.L : Bounded.Lattice
-  | filter-disjoint {a b : Filter.L} : Filter.F (a ∨ b) -> Filter.F a || Filter.F b
-}
+  \override L : Bounded.Lattice
+  | filter-disjoint {a b : L} : F (a ∨ b) -> F a || F b
+} \where \record Nontrivial \extends DisjointFilter
+  | filter-bot : Not (F bottom)
